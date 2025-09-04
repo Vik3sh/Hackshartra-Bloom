@@ -14,7 +14,196 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      certificates: {
+        Row: {
+          category: Database["public"]["Enums"]["certificate_category"]
+          description: string | null
+          file_name: string
+          file_url: string
+          id: string
+          rejection_reason: string | null
+          status: Database["public"]["Enums"]["certificate_status"]
+          student_id: string
+          title: string
+          uploaded_at: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["certificate_category"]
+          description?: string | null
+          file_name: string
+          file_url: string
+          id?: string
+          rejection_reason?: string | null
+          status?: Database["public"]["Enums"]["certificate_status"]
+          student_id: string
+          title: string
+          uploaded_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["certificate_category"]
+          description?: string | null
+          file_name?: string
+          file_url?: string
+          id?: string
+          rejection_reason?: string | null
+          status?: Database["public"]["Enums"]["certificate_status"]
+          student_id?: string
+          title?: string
+          uploaded_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "certificates_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "certificates_verified_by_fkey"
+            columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          read_at: string | null
+          receiver_id: string
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          receiver_id: string
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          receiver_id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_receiver_id_fkey"
+            columns: ["receiver_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          read_at: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          read_at?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          read_at?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          assigned_faculty_id: string | null
+          created_at: string
+          email: string
+          faculty_id: string | null
+          faculty_level: Database["public"]["Enums"]["faculty_level"] | null
+          full_name: string
+          id: string
+          role: Database["public"]["Enums"]["user_role"]
+          student_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assigned_faculty_id?: string | null
+          created_at?: string
+          email: string
+          faculty_id?: string | null
+          faculty_level?: Database["public"]["Enums"]["faculty_level"] | null
+          full_name: string
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          student_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assigned_faculty_id?: string | null
+          created_at?: string
+          email?: string
+          faculty_id?: string | null
+          faculty_level?: Database["public"]["Enums"]["faculty_level"] | null
+          full_name?: string
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          student_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_assigned_faculty_id_fkey"
+            columns: ["assigned_faculty_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +212,10 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      certificate_category: "academic" | "co_curricular"
+      certificate_status: "pending" | "approved" | "rejected"
+      faculty_level: "basic" | "senior" | "admin"
+      user_role: "student" | "faculty"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +342,11 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      certificate_category: ["academic", "co_curricular"],
+      certificate_status: ["pending", "approved", "rejected"],
+      faculty_level: ["basic", "senior", "admin"],
+      user_role: ["student", "faculty"],
+    },
   },
 } as const
