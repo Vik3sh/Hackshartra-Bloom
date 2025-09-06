@@ -11,6 +11,7 @@ export const useAuth = () => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log('Auth state change:', event, session?.user?.user_metadata);
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
@@ -19,6 +20,7 @@ export const useAuth = () => {
 
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session check:', session?.user?.user_metadata);
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -29,6 +31,8 @@ export const useAuth = () => {
 
   const signUp = async (email: string, password: string, userData: { fullName: string, role: string }) => {
     const redirectUrl = `${window.location.origin}/`;
+    
+    console.log('Signing up with userData:', userData);
     
     const { error } = await supabase.auth.signUp({
       email,
@@ -41,6 +45,8 @@ export const useAuth = () => {
         }
       }
     });
+    
+    console.log('Sign up result:', { error });
     return { error };
   };
 

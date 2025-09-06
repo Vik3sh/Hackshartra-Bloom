@@ -47,6 +47,11 @@ const Index = () => {
     );
   }
 
+  // Debug logging
+  console.log('Profile data:', profile);
+  console.log('Profile role:', profile?.role);
+  console.log('User metadata:', user?.user_metadata);
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />

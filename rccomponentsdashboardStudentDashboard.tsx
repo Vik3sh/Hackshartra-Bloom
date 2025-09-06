@@ -1,0 +1,351 @@
+warning: in the working copy of 'src/components/dashboard/StudentDashboard.tsx', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/src/components/dashboard/StudentDashboard.tsx b/src/components/dashboard/StudentDashboard.tsx[m
+[1mindex 2d47293..cee7ba5 100644[m
+[1m--- a/src/components/dashboard/StudentDashboard.tsx[m
+[1m+++ b/src/components/dashboard/StudentDashboard.tsx[m
+[36m@@ -1,166 +1,110 @@[m
+ import React, { useState, useEffect } from 'react';[m
+ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';[m
+ import { Button } from '@/components/ui/button';[m
+[31m-import { Input } from '@/components/ui/input';[m
+[31m-import { Label } from '@/components/ui/label';[m
+[31m-import { Textarea } from '@/components/ui/textarea';[m
+[31m-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';[m
+ import { Badge } from '@/components/ui/badge';[m
+[32m+[m[32mimport { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';[m
+ import { useProfile } from '@/hooks/useProfile';[m
+ import { useToast } from '@/hooks/use-toast';[m
+ import { supabase } from '@/integrations/supabase/client';[m
+[31m-import { Upload, FileText, CheckCircle, XCircle, Clock, MessageSquare } from 'lucide-react';[m
+[32m+[m[32mimport {[m[41m [m
+[32m+[m[32m  FileText,[m[41m [m
+[32m+[m[32m  CheckCircle,[m[41m [m
+[32m+[m[32m  XCircle,[m[41m [m
+[32m+[m[32m  Clock,[m[41m [m
+[32m+[m[32m  Award,[m[41m [m
+[32m+[m[32m  TrendingUp,[m[41m [m
+[32m+[m[32m  Users,[m[41m [m
+[32m+[m[32m  Calendar,[m
+[32m+[m[32m  Activity,[m
+[32m+[m[32m  Bell,[m
+[32m+[m[32m  BookOpen,[m
+[32m+[m[32m  Target[m
+[32m+[m[32m} from 'lucide-react';[m
+ import { Progress } from '@/components/ui/progress';[m
+[32m+[m[32mimport ActivityTracker from '@/components/activity/ActivityTracker';[m
+[32m+[m[32mimport NotificationCenter from '@/components/notifications/NotificationCenter';[m
+[32m+[m[32mimport PortfolioGenerator from '@/components/portfolio/PortfolioGenerator';[m
+ [m
+[31m-interface Certificate {[m
+[31m-  id: string;[m
+[31m-  title: string;[m
+[31m-  description: string;[m
+[31m-  category: 'academic' | 'co_curricular';[m
+[31m-  status: 'pending' | 'approved' | 'rejected';[m
+[31m-  file_url: string;[m
+[31m-  file_name: string;[m
+[31m-  uploaded_at: string;[m
+[31m-  rejection_reason?: string;[m
+[32m+[m[32minterface DashboardStats {[m
+[32m+[m[32m  totalCertificates: number;[m
+[32m+[m[32m  approvedCertificates: number;[m
+[32m+[m[32m  totalActivities: number;[m
+[32m+[m[32m  approvedActivities: number;[m
+[32m+[m[32m  totalCredits: number;[m
+[32m+[m[32m  unreadNotifications: number;[m
+[32m+[m[32m  recentAchievements: number;[m
+ }[m
+ [m
+ const StudentDashboard = () => {[m
+   const { profile } = useProfile();[m
+   const { toast } = useToast();[m
+[31m-  const [certificates, setCertificates] = useState<Certificate[]>([]);[m
+[32m+[m[32m  const [stats, setStats] = useState<DashboardStats>({[m
+[32m+[m[32m    totalCertificates: 0,[m
+[32m+[m[32m    approvedCertificates: 0,[m
+[32m+[m[32m    totalActivities: 0,[m
+[32m+[m[32m    approvedActivities: 0,[m
+[32m+[m[32m    totalCredits: 0,[m
+[32m+[m[32m    unreadNotifications: 0,[m
+[32m+[m[32m    recentAchievements: 0,[m
+[32m+[m[32m  });[m
+   const [loading, setLoading] = useState(false);[m
+[31m-  const [uploading, setUploading] = useState(false);[m
+[31m-  [m
+[31m-  // Upload form state[m
+[31m-  const [title, setTitle] = useState('');[m
+[31m-  const [description, setDescription] = useState('');[m
+[31m-  const [category, setCategory] = useState<'academic' | 'co_curricular'>('academic');[m
+[31m-  const [file, setFile] = useState<File | null>(null);[m
+ [m
+   useEffect(() => {[m
+     if (profile) {[m
+[31m-      fetchCertificates();[m
+[32m+[m[32m      fetchDashboardStats();[m
+     }[m
+   }, [profile]);[m
+ [m
+[31m-  const fetchCertificates = async () => {[m
+[32m+[m[32m  const fetchDashboardStats = async () => {[m
+     if (!profile) return;[m
+     [m
+     setLoading(true);[m
+     try {[m
+[31m-      const { data, error } = await supabase[m
+[32m+[m[32m      // Fetch certificates[m
+[32m+[m[32m      const { data: certificates } = await supabase[m
+         .from('certificates')[m
+[31m-        .select('*')[m
+[31m-        .eq('student_id', profile.id)[m
+[31m-        .order('uploaded_at', { ascending: false });[m
+[32m+[m[32m        .select('status')[m
+[32m+[m[32m        .eq('student_id', profile.id);[m
+ [m
+[31m-      if (error) {[m
+[31m-        console.error('Error fetching certificates:', error);[m
+[31m-        toast({[m
+[31m-          title: 'Error',[m
+[31m-          description: 'Failed to fetch certificates',[m
+[31m-          variant: 'destructive',[m
+[31m-        });[m
+[31m-      } else {[m
+[31m-        setCertificates(data || []);[m
+[31m-      }[m
+[31m-    } catch (error) {[m
+[31m-      console.error('Error fetching certificates:', error);[m
+[31m-    } finally {[m
+[31m-      setLoading(false);[m
+[31m-    }[m
+[31m-  };[m
+[31m-[m
+[31m-  const uploadCertificate = async (e: React.FormEvent) => {[m
+[31m-    e.preventDefault();[m
+[31m-    if (!file || !profile) return;[m
+[31m-[m
+[31m-    setUploading(true);[m
+[31m-    try {[m
+[31m-      // Upload file to storage[m
+[31m-      const fileExt = file.name.split('.').pop();[m
+[31m-      const fileName = `${profile.user_id}/${Date.now()}.${fileExt}`;[m
+[31m-      [m
+[31m-      const { error: uploadError } = await supabase.storage[m
+[31m-        .from('certificates')[m
+[31m-        .upload(fileName, file);[m
+[32m+[m[32m      // Fetch activities[m
+[32m+[m[32m      const { data: activities } = await supabase[m
+[32m+[m[32m        .from('activities')[m
+[32m+[m[32m        .select('status, credits_earned')[m
+[32m+[m[32m        .eq('student_id', profile.id);[m
+ [m
+[31m-      if (uploadError) {[m
+[31m-        throw uploadError;[m
+[31m-      }[m
+[32m+[m[32m      // Fetch notifications[m
+[32m+[m[32m      const { data: notifications } = await supabase[m
+[32m+[m[32m        .from('notifications')[m
+[32m+[m[32m        .select('read_at')[m
+[32m+[m[32m        .eq('user_id', profile.id);[m
+ [m
+[31m-      // Get public URL[m
+[31m-      const { data: { publicUrl } } = supabase.storage[m
+[31m-        .from('certificates')[m
+[31m-        .getPublicUrl(fileName);[m
+[32m+[m[32m      const totalCertificates = certificates?.length || 0;[m
+[32m+[m[32m      const approvedCertificates = certificates?.filter(c => c.status === 'approved').length || 0;[m
+[32m+[m[32m      const totalActivities = activities?.length || 0;[m
+[32m+[m[32m      const approvedActivities = activities?.filter(a => a.status === 'approved').length || 0;[m
+[32m+[m[32m      const totalCredits = activities?.reduce((sum, a) => sum + (a.credits_earned || 0), 0) || 0;[m
+[32m+[m[32m      const unreadNotifications = notifications?.filter(n => !n.read_at).length || 0;[m
+ [m
+[31m-      // Insert certificate record[m
+[31m-      const { error: insertError } = await supabase[m
+[31m-        .from('certificates')[m
+[31m-        .insert({[m
+[31m-          student_id: profile.id,[m
+[31m-          title,[m
+[31m-          description,[m
+[31m-          category,[m
+[31m-          file_url: publicUrl,[m
+[31m-          file_name: file.name,[m
+[31m-        });[m
+[31m-[m
+[31m-      if (insertError) {[m
+[31m-        throw insertError;[m
+[31m-      }[m
+[31m-[m
+[31m-      toast({[m
+[31m-        title: 'Success',[m
+[31m-        description: 'Certificate uploaded successfully!',[m
+[31m-      });[m
+[31m-[m
+[31m-      // Reset form[m
+[31m-      setTitle('');[m
+[31m-      setDescription('');[m
+[31m-      setCategory('academic');[m
+[31m-      setFile(null);[m
+[31m-      [m
+[31m-      // Refresh certificates[m
+[31m-      fetchCertificates();[m
+[31m-    } catch (error: any) {[m
+[31m-      console.error('Error uploading certificate:', error);[m
+[31m-      toast({[m
+[31m-        title: 'Error',[m
+[31m-        description: error.message || 'Failed to upload certificate',[m
+[31m-        variant: 'destructive',[m
+[32m+[m[32m      setStats({[m
+[32m+[m[32m        totalCertificates,[m
+[32m+[m[32m        approvedCertificates,[m
+[32m+[m[32m        totalActivities,[m
+[32m+[m[32m        approvedActivities,[m
+[32m+[m[32m        totalCredits,[m
+[32m+[m[32m        unreadNotifications,[m
+[32m+[m[32m        recentAchievements: approvedCertificates + approvedActivities,[m
+       });[m
+[32m+[m[32m    } catch (error) {[m
+[32m+[m[32m      console.error('Error fetching dashboard stats:', error);[m
+     } finally {[m
+[31m-      setUploading(false);[m
+[31m-    }[m
+[31m-  };[m
+[31m-[m
+[31m-  const getStatusIcon = (status: string) => {[m
+[31m-    switch (status) {[m
+[31m-      case 'approved':[m
+[31m-        return <CheckCircle className="h-4 w-4 text-green-600" />;[m
+[31m-      case 'rejected':[m
+[31m-        return <XCircle className="h-4 w-4 text-red-600" />;[m
+[31m-      default:[m
+[31m-        return <Clock className="h-4 w-4 text-yellow-600" />;[m
+[31m-    }[m
+[31m-  };[m
+[31m-[m
+[31m-  const getStatusBadge = (status: string) => {[m
+[31m-    switch (status) {[m
+[31m-      case 'approved':[m
+[31m-        return <Badge className="bg-green-100 text-green-800">Approved</Badge>;[m
+[31m-      case 'rejected':[m
+[31m-        return <Badge className="bg-red-100 text-red-800">Rejected</Badge>;[m
+[31m-      default:[m
+[31m-        return <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>;[m
+[32m+[m[32m      setLoading(false);[m
+     }[m
+   };[m
+ [m
+[31m-  const calculateProgress = () => {[m
+[31m-    if (certificates.length === 0) return 0;[m
+[31m-    const approved = certificates.filter(cert => cert.status === 'approved').length;[m
+[31m-    return (approved / certificates.length) * 100;[m
+[32m+[m[32m  const getProgressPercentage = () => {[m
+[32m+[m[32m    const total = stats.totalCertificates + stats.totalActivities;[m
+[32m+[m[32m    const approved = stats.approvedCertificates + stats.approvedActivities;[m
+[32m+[m[32m    return total > 0 ? (approved / total) * 100 : 0;[m
+   };[m
+ [m
+   return ([m
+[36m@@ -170,164 +114,192 @@[m [mconst StudentDashboard = () => {[m
+           <h1 className="text-3xl font-bold text-foreground">Student Dashboard</h1>[m
+           <p className="text-muted-foreground">Welcome back, {profile?.full_name}!</p>[m
+         </div>[m
+[32m+[m[32m        <div className="flex items-center space-x-2">[m
+[32m+[m[32m          {stats.unreadNotifications > 0 && ([m
+[32m+[m[32m            <Badge variant="destructive" className="animate-pulse">[m
+[32m+[m[32m              <Bell className="h-3 w-3 mr-1" />[m
+[32m+[m[32m              {stats.unreadNotifications} new[m
+[32m+[m[32m            </Badge>[m
+[32m+[m[32m          )}[m
+[32m+[m[32m        </div>[m
+       </div>[m
+ [m
+[31m-      {/* Progress Overview */}[m
+[31m-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">[m
+[32m+[m[32m      {/* Key Metrics */}[m
+[32m+[m[32m      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">[m
+[32m+[m[32m        <Card>[m
+[32m+[m[32m          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">[m
+[32m+[m[32m            <CardTitle className="text-sm font-medium">Total Achievements</CardTitle>[m
+[32m+[m[32m            <Award className="h-4 w-4 text-muted-foreground" />[m
+[32m+[m[32m          </CardHeader>[m
+[32m+[m[32m          <CardContent>[m
+[32m+[m[32m            <div className="text-2xl font-bold">{stats.totalCertificates + stats.totalActivities}</div>[m
+[32m+[m[32m            <p className="text-xs text-muted-foreground">[m
+[32m+[m[32m              {stats.approvedCertificates + stats.approvedActivities} approved[m
+[32m+[m[32m            </p>[m
+[32m+[m[32m          </CardContent>[m
+[32m+[m[32m        </Card>[m
+[32m+[m[41m        [m
+         <Card>[m
+           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">[m
+[31m-            <CardTitle className="text-sm font-medium">Total Certificates</CardTitle>[m
+[32m+[m[32m            <CardTitle className="text-sm font-medium">Certificates</CardTitle>[m
+             <FileText className="h-4 w-4 text-muted-foreground" />[m
+           </CardHeader>[m
+           <CardContent>[m
+[31m-            <div className="text-2xl font-bold">{certificates.length}</div>[m
+[32m+[m[32m            <div className="text-2xl font-bold">{stats.totalCertificates}</div>[m
+[32m+[m[32m            <p className="text-xs text-muted-foreground">[m
+[32m+[m[32m              {stats.approvedCertificates} approved[m
+[32m+[m[32m            </p>[m
+           </CardContent>[m
+         </Card>[m
+         [m
+         <Card>[m
+           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">[m
+[31m-            <CardTitle className="text-sm font-medium">Approved</CardTitle>[m
+[31m-            <CheckCircle className="h-4 w-4 text-green-600" />[m
+[32m+[m[32m            <CardTitle className="text-sm font-medium">Activities</CardTitle>[m
+[32m+[m[32m            <Activity className="h-4 w-4 text-muted-foreground" />[m
+           </CardHeader>[m
+           <CardContent>[m
+[31m-            <div className="text-2xl font-bold text-green-600">[m
+[31m-              {certificates.filter(cert => cert.status === 'approved').length}[m
+[31m-            </div>[m
+[32m+[m[32m            <div className="text-2xl font-bold">{stats.totalActivities}</div>[m
+[32m+[m[32m            <p className="text-xs text-muted-foreground">[m
+[32m+[m[32m              {stats.approvedActivities} approved[m
+[32m+[m[32m            </p>[m
+           </CardContent>[m
+         </Card>[m
+         [m
+         <Card>[m
+           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">[m
+[31m-            <CardTitle className="text-sm font-medium">Progress</CardTitle>[m
+[32m+[m[32m            <CardTitle className="text-sm font-medium">Total Credits</CardTitle>[m
+[32m+[m[32m            <Target className="h-4 w-4 text-muted-foreground" />[m
+           </CardHeader>[m
+           <CardContent>[m
+[31m-            <div className="text-2xl font-bold">{Math.round(calculateProgress())}%</div>[m
+[31m-            <Progress value={calculateProgress()} className="mt-2" />[m
+[32m+[m[32m            <div className="text-2xl font-bold">{stats.totalCredits}</div>[m
+[32m+[m[32m            <p className="text-xs text-muted-foreground">[m
+[32m+[m[32m              Earned from activities[m
+[32m+[m[32m            </p>[m
+           </CardContent>[m
+         </Card>[m
+       </div>[m
+ [m
+[31m-      {/* Upload Certificate */}[m
+[32m+[m[32m      {/* Progress Overview */}[m
+       <Card>[m
+         <CardHeader>[m
+           <CardTitle className="flex items-center space-x-2">[m
+[31m-            <Upload className="h-5 w-5" />[m
+[31m-            <span>Upload Certificate</span>[m
+[32m+[m[32m            <TrendingUp className="h-5 w-5" />[m
+[32m+[m[32m            <span>Overall Progress</span>[m
+           </CardTitle>[m
+           <CardDescription>[m
+[31m-            Upload your academic or co-curricular certificates for verification[m
+[32m+[m[32m            Track your academic and co-curricular achievement progress[m
+           </CardDescription>[m
+         </CardHeader>[m
+         <CardContent>[m
+[31m-          <form onSubmit={uploadCertificate} className="space-y-4">[m
+[31m-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">[m
+[31m-              <div className="space-y-2">[m
+[31m-                <Label htmlFor="title">Certificate Title</Label>[m
+[31m-                <Input[m
+[31m-                  id="title"[m
+[31m-                  value={title}[m
+[31m-                  onChange={(e) => setTitle(e.target.value)}[m
+[31m-                  placeholder="e.g., Computer Science Degree"[m
+[31m-        

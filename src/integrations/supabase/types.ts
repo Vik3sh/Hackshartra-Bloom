@@ -14,6 +14,185 @@ export type Database = {
   }
   public: {
     Tables: {
+      academic_records: {
+        Row: {
+          id: string
+          student_id: string
+          semester: string
+          subject_code: string
+          subject_name: string
+          credits: number
+          grade: string
+          grade_points: number | null
+          cgpa: number | null
+          academic_year: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          student_id: string
+          semester: string
+          subject_code: string
+          subject_name: string
+          credits: number
+          grade: string
+          grade_points?: number | null
+          cgpa?: number | null
+          academic_year: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          student_id?: string
+          semester?: string
+          subject_code?: string
+          subject_name?: string
+          credits?: number
+          grade?: string
+          grade_points?: number | null
+          cgpa?: number | null
+          academic_year?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academic_records_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      activities: {
+        Row: {
+          id: string
+          student_id: string
+          title: string
+          description: string | null
+          activity_type: Database["public"]["Enums"]["activity_type"]
+          category: Database["public"]["Enums"]["certificate_category"]
+          status: Database["public"]["Enums"]["activity_status"]
+          start_date: string | null
+          end_date: string | null
+          organization: string | null
+          location: string | null
+          credits_earned: number
+          file_urls: string[] | null
+          file_names: string[] | null
+          verified_by: string | null
+          verified_at: string | null
+          rejection_reason: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          student_id: string
+          title: string
+          description?: string | null
+          activity_type: Database["public"]["Enums"]["activity_type"]
+          category: Database["public"]["Enums"]["certificate_category"]
+          status?: Database["public"]["Enums"]["activity_status"]
+          start_date?: string | null
+          end_date?: string | null
+          organization?: string | null
+          location?: string | null
+          credits_earned?: number
+          file_urls?: string[] | null
+          file_names?: string[] | null
+          verified_by?: string | null
+          verified_at?: string | null
+          rejection_reason?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          student_id?: string
+          title?: string
+          description?: string | null
+          activity_type?: Database["public"]["Enums"]["activity_type"]
+          category?: Database["public"]["Enums"]["certificate_category"]
+          status?: Database["public"]["Enums"]["activity_status"]
+          start_date?: string | null
+          end_date?: string | null
+          organization?: string | null
+          location?: string | null
+          credits_earned?: number
+          file_urls?: string[] | null
+          file_names?: string[] | null
+          verified_by?: string | null
+          verified_at?: string | null
+          rejection_reason?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activities_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activities_verified_by_fkey"
+            columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      attendance: {
+        Row: {
+          id: string
+          student_id: string
+          subject_code: string
+          date: string
+          status: Database["public"]["Enums"]["attendance_status"]
+          remarks: string | null
+          marked_by: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          student_id: string
+          subject_code: string
+          date: string
+          status: Database["public"]["Enums"]["attendance_status"]
+          remarks?: string | null
+          marked_by?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          student_id?: string
+          subject_code?: string
+          date?: string
+          status?: Database["public"]["Enums"]["attendance_status"]
+          remarks?: string | null
+          marked_by?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_marked_by_fkey"
+            columns: ["marked_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       certificates: {
         Row: {
           category: Database["public"]["Enums"]["certificate_category"]
@@ -68,6 +247,53 @@ export type Database = {
           {
             foreignKeyName: "certificates_verified_by_fkey"
             columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      institutional_reports: {
+        Row: {
+          id: string
+          title: string
+          description: string | null
+          report_type: Database["public"]["Enums"]["report_type"]
+          generated_by: string | null
+          parameters: Json | null
+          file_url: string | null
+          status: string
+          created_at: string
+          completed_at: string | null
+        }
+        Insert: {
+          id?: string
+          title: string
+          description?: string | null
+          report_type: Database["public"]["Enums"]["report_type"]
+          generated_by?: string | null
+          parameters?: Json | null
+          file_url?: string | null
+          status?: string
+          created_at?: string
+          completed_at?: string | null
+        }
+        Update: {
+          id?: string
+          title?: string
+          description?: string | null
+          report_type?: Database["public"]["Enums"]["report_type"]
+          generated_by?: string | null
+          parameters?: Json | null
+          file_url?: string | null
+          status?: string
+          created_at?: string
+          completed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "institutional_reports_generated_by_fkey"
+            columns: ["generated_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -154,6 +380,53 @@ export type Database = {
           },
         ]
       }
+      portfolios: {
+        Row: {
+          id: string
+          student_id: string
+          title: string
+          description: string | null
+          is_public: boolean
+          share_token: string
+          pdf_url: string | null
+          last_generated: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          student_id: string
+          title: string
+          description?: string | null
+          is_public?: boolean
+          share_token?: string
+          pdf_url?: string | null
+          last_generated?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          student_id?: string
+          title?: string
+          description?: string | null
+          is_public?: boolean
+          share_token?: string
+          pdf_url?: string | null
+          last_generated?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portfolios_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           assigned_faculty_id: string | null
@@ -212,9 +485,13 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      activity_status: "draft" | "submitted" | "approved" | "rejected"
+      activity_type: "conference" | "mooc" | "internship" | "volunteering" | "competition" | "certification" | "project" | "publication" | "workshop" | "seminar" | "sports" | "cultural" | "leadership" | "research" | "other"
+      attendance_status: "present" | "absent" | "late" | "excused"
       certificate_category: "academic" | "co_curricular"
       certificate_status: "pending" | "approved" | "rejected"
       faculty_level: "basic" | "senior" | "admin"
+      report_type: "naac" | "aicte" | "nirf" | "internal" | "custom"
       user_role: "student" | "faculty"
     }
     CompositeTypes: {
@@ -343,9 +620,13 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      activity_status: ["draft", "submitted", "approved", "rejected"],
+      activity_type: ["conference", "mooc", "internship", "volunteering", "competition", "certification", "project", "publication", "workshop", "seminar", "sports", "cultural", "leadership", "research", "other"],
+      attendance_status: ["present", "absent", "late", "excused"],
       certificate_category: ["academic", "co_curricular"],
       certificate_status: ["pending", "approved", "rejected"],
       faculty_level: ["basic", "senior", "admin"],
+      report_type: ["naac", "aicte", "nirf", "internal", "custom"],
       user_role: ["student", "faculty"],
     },
   },

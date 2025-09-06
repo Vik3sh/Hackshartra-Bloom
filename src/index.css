@@ -2,6 +2,88 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Smooth scroll snapping for better UX */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Hide scrollbars globally */
+html, body, * {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+html::-webkit-scrollbar, 
+body::-webkit-scrollbar, 
+*::-webkit-scrollbar {
+  display: none; /* Safari and Chrome */
+}
+
+/* Additional comprehensive scrollbar hiding */
+* {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+*::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* Force hide all scrollbars with maximum specificity */
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+div::-webkit-scrollbar,
+section::-webkit-scrollbar,
+main::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
+
+/* Enhanced scroll snapping */
+.snap-container {
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+  overflow-y: scroll;
+  height: 100vh;
+}
+
+.snap-section {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+/* Ensure scroll snapping works properly */
+* {
+  scroll-behavior: smooth;
+}
+
+/* Hide scrollbar but keep scroll functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Safari and Chrome */
+}
+
+/* Additional scrollbar hiding for better compatibility */
+.scrollbar-hide::-webkit-scrollbar-track {
+  display: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar-thumb {
+  display: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar-corner {
+  display: none;
+}
+
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
 */
