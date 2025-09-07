@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AuthPage from "./components/auth/AuthPage";
 import MyProjectsPage from "./pages/MyProjectsPage";
+import MyActivitiesPage from "./pages/MyActivitiesPage";
 import GitHubCallback from "./pages/GitHubCallback";
 import CertificateManagement from "./pages/CertificateManagement";
 
@@ -24,6 +25,7 @@ const App = () => {
             <Route path="/" element={<HomePage />} />
             <Route path="/dashboard" element={<Index />} />
             <Route path="/projects" element={<MyProjectsPage />} />
+            <Route path="/activities" element={<MyActivitiesPage />} />
             <Route path="/auth/github/callback" element={<GitHubCallback />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/certificates" element={<CertificateManagement />} />
