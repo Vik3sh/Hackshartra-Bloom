@@ -60,7 +60,7 @@ const HomePage: React.FC = () => {
         alert('Certificate Management - Coming Soon!');
         break;
       case 'activities':
-        alert('My Activities - Coming Soon!');
+        window.location.href = '/activities';
         break;
       case 'academic':
         alert('Academic Achievements - Coming Soon!');

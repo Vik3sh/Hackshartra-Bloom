@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Activity, User, TrendingUp, Plus, Search, Filter, ArrowLeft, Github, ExternalLink, Star, GitFork, Calendar, Code, Eye, Download, Settings, Link as LinkIcon } from 'lucide-react';
+import { Activity, User, TrendingUp, Plus, Search, Filter, ArrowLeft, Github, ExternalLink, Star, GitFork, Calendar, Code, Eye, Download, Settings, Link as LinkIcon, LayoutTemplate, Upload } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import TopNavigationBar from '@/components/layout/TopNavigationBar';
@@ -26,6 +26,9 @@ const MyProjectsPage: React.FC = () => {
   const [repositories, setRepositories] = React.useState<GitHubRepository[]>([]);
   const [showConnectDialog, setShowConnectDialog] = React.useState(false);
   const [showAddProjectDialog, setShowAddProjectDialog] = React.useState(false);
+  const [showCollaboratorsDialog, setShowCollaboratorsDialog] = React.useState(false);
+  const [showTemplatesDialog, setShowTemplatesDialog] = React.useState(false);
+  const [showImportDialog, setShowImportDialog] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState('');
   const [filterStatus, setFilterStatus] = React.useState('all');
   const [showProfileDropdown, setShowProfileDropdown] = React.useState(false);
@@ -52,34 +55,23 @@ const MyProjectsPage: React.FC = () => {
     }
   }, [isDarkMode]);
 
-  // Check for existing GitHub authentication on mount
+  // Check for existing GitHub connection on mount
   React.useEffect(() => {
-    if (githubAuth.isAuthenticated()) {
-      const user = githubAuth.getCurrentUser();
-      if (user) {
+    const savedUser = localStorage.getItem('github_user');
+    const savedRepos = localStorage.getItem('github_repos');
+    
+    if (savedUser && savedRepos) {
+      try {
+        const user = JSON.parse(savedUser);
+        const repos = JSON.parse(savedRepos);
         setGithubUser(user);
+        setRepositories(repos);
         setIsGitHubConnected(true);
-        // Load repositories
-        loadRepositories();
+      } catch (error) {
+        console.error('Error loading saved GitHub data:', error);
       }
     }
   }, []);
-
-  // Handle OAuth callback state
-  React.useEffect(() => {
-    if (location.state) {
-      if (location.state.githubConnected && location.state.user) {
-        setGithubUser(location.state.user);
-        setIsGitHubConnected(true);
-        loadRepositories();
-        alert(`GitHub connected successfully! Welcome ${location.state.user.name || location.state.user.login}!`);
-      } else if (location.state.error) {
-        alert(location.state.error);
-      }
-      // Clear the state to prevent re-triggering
-      window.history.replaceState({}, document.title);
-    }
-  }, [location.state]);
 
   // Close dropdown when clicking outside
   React.useEffect(() => {
@@ -149,34 +141,22 @@ const MyProjectsPage: React.FC = () => {
     alert('Project deleted successfully!');
   };
 
-  // Load repositories for authenticated user
-  const loadRepositories = async () => {
-    const token = githubAuth.getToken();
-    if (!token) return;
-
-    try {
-      setIsLoadingRepos(true);
-      const repos = await githubAuth.getUserRepositories(token);
-      setRepositories(repos);
-    } catch (error) {
-      console.error('Error loading repositories:', error);
-      alert('Failed to load repositories. Please try again.');
-    } finally {
-      setIsLoadingRepos(false);
-    }
-  };
 
   // GitHub Integration Functions
   const connectGitHub = async () => {
     try {
+      console.log('Connect GitHub button clicked');
       setIsLoadingRepos(true);
       
       // Use GitHub's public API (no CORS issues)
       const username = prompt('Enter your GitHub username:');
       if (!username) {
+        console.log('No username provided');
         setIsLoadingRepos(false);
         return;
       }
+      
+      console.log('Fetching data for username:', username);
 
       // Fetch user info
       const userResponse = await fetch(`https://api.github.com/users/${username}`);
@@ -230,6 +210,10 @@ const MyProjectsPage: React.FC = () => {
       setIsGitHubConnected(true);
       setShowConnectDialog(false);
       
+      // Save to localStorage for persistence
+      localStorage.setItem('github_user', JSON.stringify(githubUser));
+      localStorage.setItem('github_repos', JSON.stringify(transformedRepos));
+      
       alert(`GitHub connected successfully! Welcome ${githubUser.name}!`);
       
     } catch (error) {
@@ -241,150 +225,13 @@ const MyProjectsPage: React.FC = () => {
     }
   };
 
-  // Demo mode fallback
-  const connectGitHubDemo = async () => {
-    try {
-      setIsLoadingRepos(true);
-      
-      // Demo mode: Simulate OAuth flow
-      const mockCode = `demo_code_${Date.now()}`;
-      const mockState = `demo_state_${Date.now()}`;
-      
-      // Store state for validation
-      localStorage.setItem('github_oauth_state', mockState);
-      
-      // Simulate OAuth callback
-      await handleOAuthCallback(mockCode, mockState);
-      
-    } catch (error) {
-      console.error('Error connecting to GitHub:', error);
-      alert('Failed to connect to GitHub. Please try again.');
-    } finally {
-      setIsLoadingRepos(false);
-    }
-  };
 
-  // Handle OAuth callback (this would normally be handled by a separate callback page)
-  const handleOAuthCallback = async (code: string, state: string) => {
-    try {
-      setIsLoadingRepos(true);
-      
-      // Exchange code for token
-      const token = await githubAuth.exchangeCodeForToken(code, state);
-      
-      // Check if this is demo mode (mock token)
-      if (token.startsWith('demo_token_')) {
-        // Demo mode: Create mock user data
-        const mockUser: GitHubUser = {
-          login: 'demo-user',
-          id: 12345,
-          avatar_url: 'https://avatars.githubusercontent.com/u/12345?v=4',
-          name: 'Demo User',
-          email: 'demo@example.com',
-          bio: 'This is a demo GitHub user for testing purposes',
-          public_repos: 15,
-          followers: 42,
-          following: 38
-        };
-        
-        // Demo mode: Create mock repositories
-        const mockRepositories: GitHubRepository[] = [
-          {
-            id: 1,
-            name: 'awesome-project',
-            full_name: 'demo-user/awesome-project',
-            description: 'An awesome project built with React and TypeScript',
-            language: 'TypeScript',
-            stargazers_count: 25,
-            forks_count: 8,
-            updated_at: '2024-01-15T10:30:00Z',
-            html_url: 'https://github.com/demo-user/awesome-project',
-            archived: false,
-            fork: false
-          },
-          {
-            id: 2,
-            name: 'portfolio-website',
-            full_name: 'demo-user/portfolio-website',
-            description: 'Personal portfolio website showcasing my projects',
-            language: 'JavaScript',
-            stargazers_count: 12,
-            forks_count: 3,
-            updated_at: '2024-01-12T14:20:00Z',
-            html_url: 'https://github.com/demo-user/portfolio-website',
-            archived: false,
-            fork: false
-          },
-          {
-            id: 3,
-            name: 'task-manager',
-            full_name: 'demo-user/task-manager',
-            description: 'A collaborative task management application',
-            language: 'Python',
-            stargazers_count: 18,
-            forks_count: 5,
-            updated_at: '2024-01-10T09:15:00Z',
-            html_url: 'https://github.com/demo-user/task-manager',
-            archived: true,
-            fork: false
-          },
-          {
-            id: 4,
-            name: 'weather-app',
-            full_name: 'demo-user/weather-app',
-            description: 'Real-time weather application with location services',
-            language: 'React',
-            stargazers_count: 8,
-            forks_count: 2,
-            updated_at: '2024-01-08T16:45:00Z',
-            html_url: 'https://github.com/demo-user/weather-app',
-            archived: false,
-            fork: false
-          },
-          {
-            id: 5,
-            name: 'blog-cms',
-            full_name: 'demo-user/blog-cms',
-            description: 'A headless CMS for managing blog content',
-            language: 'Node.js',
-            stargazers_count: 31,
-            forks_count: 7,
-            updated_at: '2024-01-05T11:30:00Z',
-            html_url: 'https://github.com/demo-user/blog-cms',
-            archived: false,
-            fork: false
-          }
-        ];
-        
-        setGithubUser(mockUser);
-        setRepositories(mockRepositories);
-        setIsGitHubConnected(true);
-        
-        setShowConnectDialog(false);
-        alert(`GitHub connected successfully! Welcome ${mockUser.name}! (Demo Mode)`);
-      } else {
-        // Real OAuth: Get actual user data and repositories
-        const user = await githubAuth.getAuthenticatedUser(token);
-        const repos = await githubAuth.getUserRepositories(token);
-        
-        setGithubUser(user);
-        setRepositories(repos);
-        setIsGitHubConnected(true);
-        
-        setShowConnectDialog(false);
-        alert(`GitHub connected successfully! Welcome ${user.name || user.login}!`);
-      }
-    } catch (error) {
-      console.error('Error handling OAuth callback:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      alert(`Failed to complete GitHub authentication: ${errorMessage}`);
-    } finally {
-      setIsLoadingRepos(false);
-    }
-  };
 
   const disconnectGitHub = () => {
-    githubAuth.removeToken();
+    // Clear localStorage
+    localStorage.removeItem('github_user');
+    localStorage.removeItem('github_repos');
+    
     setGithubUser(null);
     setIsGitHubConnected(false);
     setRepositories([]);
@@ -392,22 +239,120 @@ const MyProjectsPage: React.FC = () => {
   };
 
   const syncRepositories = async () => {
-    if (!githubAuth.isAuthenticated()) {
-      alert('No GitHub authentication found. Please reconnect your account.');
+    if (!isGitHubConnected || !githubUser) {
+      alert('No GitHub connection found. Please connect your GitHub account first.');
       return;
     }
 
     try {
-      await loadRepositories();
+      setIsLoadingRepos(true);
+      
+      // Re-fetch repositories for the connected user
+      const reposResponse = await fetch(`https://api.github.com/users/${githubUser.login}/repos?sort=updated&per_page=20&type=owner`);
+      if (!reposResponse.ok) {
+        throw new Error('Failed to fetch repositories.');
+      }
+      const repos = await reposResponse.json();
+
+      // Filter to only show repositories owned by the user (not forks)
+      const userRepos = repos.filter((repo: any) => 
+        repo.owner.login === githubUser.login && !repo.fork
+      );
+
+      // Transform to our format
+      const transformedRepos = userRepos.map((repo: any) => ({
+        id: repo.id,
+        name: repo.name,
+        full_name: repo.full_name,
+        description: repo.description || 'No description available',
+        language: repo.language || 'Unknown',
+        stargazers_count: repo.stargazers_count,
+        forks_count: repo.forks_count,
+        updated_at: repo.updated_at,
+        html_url: repo.html_url,
+        archived: repo.archived,
+        fork: repo.fork
+      }));
+
+      setRepositories(transformedRepos);
+      
+      // Update localStorage
+      localStorage.setItem('github_repos', JSON.stringify(transformedRepos));
+      
       alert('Repositories synced successfully!');
     } catch (error) {
       console.error('Error syncing repositories:', error);
       alert('Failed to sync repositories. Please try again.');
+    } finally {
+      setIsLoadingRepos(false);
     }
   };
 
   const openRepository = (url: string) => {
     window.open(url, '_blank');
+  };
+
+  // Download project as ZIP
+  const downloadProject = async (repo: GitHubRepository) => {
+    try {
+      // For GitHub repositories, download from GitHub's archive API
+      if (repo.html_url.includes('github.com')) {
+        const downloadUrl = `https://github.com/${repo.full_name}/archive/refs/heads/main.zip`;
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = `${repo.name}.zip`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        alert(`Downloading ${repo.name}...`);
+      } else {
+        // For manual projects, create a simple text file with project info
+        const projectInfo = `Project: ${repo.name}\nDescription: ${repo.description}\nLanguage: ${repo.language}\nURL: ${repo.html_url}`;
+        const blob = new Blob([projectInfo], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${repo.name}-info.txt`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        alert(`Downloaded project info for ${repo.name}`);
+      }
+    } catch (error) {
+      console.error('Error downloading project:', error);
+      alert('Failed to download project. Please try again.');
+    }
+  };
+
+  // Copy clone URL to clipboard
+  const copyCloneUrl = async (repo: GitHubRepository) => {
+    try {
+      let cloneUrl = '';
+      
+      if (repo.html_url.includes('github.com')) {
+        // GitHub repository clone URL
+        cloneUrl = `https://github.com/${repo.full_name}.git`;
+      } else {
+        // Manual project - use the provided URL or create a placeholder
+        cloneUrl = repo.html_url || `https://example.com/${repo.name}.git`;
+      }
+      
+      await navigator.clipboard.writeText(cloneUrl);
+      alert(`Clone URL copied to clipboard!\n${cloneUrl}`);
+    } catch (error) {
+      console.error('Error copying to clipboard:', error);
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = repo.html_url.includes('github.com') 
+        ? `https://github.com/${repo.full_name}.git`
+        : repo.html_url || `https://example.com/${repo.name}.git`;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      alert('Clone URL copied to clipboard!');
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -434,6 +379,12 @@ const MyProjectsPage: React.FC = () => {
   const allProjects = [...repositories, ...manualProjects];
 
   // Filter repositories based on search and status
+  // Calculate real-time statistics
+  const totalProjects = allProjects.length;
+  const completedProjects = allProjects.filter(repo => repo.archived).length;
+  const inProgressProjects = allProjects.filter(repo => !repo.archived).length;
+  const totalViews = allProjects.reduce((sum, repo) => sum + (repo.stargazers_count || 0), 0);
+
   const filteredRepositories = allProjects.filter(repo => {
     const matchesSearch = repo.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (repo.description && repo.description.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -566,7 +517,7 @@ const MyProjectsPage: React.FC = () => {
                     <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}>
                       Total Projects
                     </p>
-                    <p className="text-3xl font-bold text-green-600">12</p>
+                    <p className="text-3xl font-bold text-green-600">{totalProjects}</p>
                   </div>
                   <Activity className="h-8 w-8 text-green-600" />
                 </div>
@@ -580,7 +531,7 @@ const MyProjectsPage: React.FC = () => {
                     <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}>
                       Completed
                     </p>
-                    <p className="text-3xl font-bold text-blue-600">8</p>
+                    <p className="text-3xl font-bold text-blue-600">{completedProjects}</p>
                   </div>
                   <TrendingUp className="h-8 w-8 text-blue-600" />
                 </div>
@@ -594,7 +545,7 @@ const MyProjectsPage: React.FC = () => {
                     <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}>
                       In Progress
                     </p>
-                    <p className="text-3xl font-bold text-orange-600">3</p>
+                    <p className="text-3xl font-bold text-orange-600">{inProgressProjects}</p>
                   </div>
                   <Activity className="h-8 w-8 text-orange-600" />
                 </div>
@@ -606,9 +557,9 @@ const MyProjectsPage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}>
-                      Total Views
+                      Total Stars
                     </p>
-                    <p className="text-3xl font-bold text-purple-600">1.2k</p>
+                    <p className="text-3xl font-bold text-purple-600">{totalViews}</p>
                   </div>
                   <TrendingUp className="h-8 w-8 text-purple-600" />
                 </div>
@@ -639,7 +590,7 @@ const MyProjectsPage: React.FC = () => {
                   Link your GitHub account to automatically import and showcase your repositories
                 </p>
                 <Button 
-                  onClick={() => setShowConnectDialog(true)}
+                  onClick={connectGitHub}
                   className="bg-gray-800 hover:bg-gray-700 text-white"
                 >
                   <Github className="h-4 w-4 mr-2" />
@@ -730,18 +681,19 @@ const MyProjectsPage: React.FC = () => {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => openRepository(repo.html_url)}
+                            onClick={() => downloadProject(repo)}
                             className="h-8 px-3"
                           >
-                            <Github className="h-3 w-3 mr-1" />
-                            View
+                            <Download className="h-3 w-3 mr-1" />
+                            Download
                           </Button>
                           <Button
                             size="sm"
                             variant="outline"
+                            onClick={() => copyCloneUrl(repo)}
                             className="h-8 px-3"
                           >
-                            <Download className="h-3 w-3 mr-1" />
+                            <GitFork className="h-3 w-3 mr-1" />
                             Clone
                           </Button>
                         </div>
@@ -755,21 +707,39 @@ const MyProjectsPage: React.FC = () => {
 
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-4">
-            <Button className="bg-green-600 hover:bg-green-700">
+            <Button 
+              onClick={() => {
+                console.log('Create New Project button clicked');
+                setShowAddProjectDialog(true);
+              }}
+              className="bg-green-600 hover:bg-green-700"
+            >
               <Plus className="h-4 w-4 mr-2" />
               Create New Project
             </Button>
-            <Button variant="outline" className={isDarkMode ? 'border-gray-600 text-gray-300' : ''}>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowCollaboratorsDialog(true)}
+              className={isDarkMode ? 'border-gray-600 text-gray-300' : ''}
+            >
               <User className="h-4 w-4 mr-2" />
               Find Collaborators
             </Button>
-            <Button variant="outline" className={isDarkMode ? 'border-gray-600 text-gray-300' : ''}>
-              <TrendingUp className="h-4 w-4 mr-2" />
-              View Analytics
+            <Button 
+              variant="outline" 
+              onClick={() => setShowTemplatesDialog(true)}
+              className={isDarkMode ? 'border-gray-600 text-gray-300' : ''}
+            >
+              <LayoutTemplate className="h-4 w-4 mr-2" />
+              Browse Templates
             </Button>
-            <Button variant="outline" className={isDarkMode ? 'border-gray-600 text-gray-300' : ''}>
-              <Activity className="h-4 w-4 mr-2" />
-              Export Portfolio
+            <Button 
+              variant="outline" 
+              onClick={() => setShowImportDialog(true)}
+              className={isDarkMode ? 'border-gray-600 text-gray-300' : ''}
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              Import Local Project
             </Button>
           </div>
         </div>
@@ -855,6 +825,204 @@ const MyProjectsPage: React.FC = () => {
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >
                 Add Project
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Find Collaborators Dialog */}
+      <Dialog open={showCollaboratorsDialog} onOpenChange={setShowCollaboratorsDialog}>
+        <DialogContent className={isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}>
+          <DialogHeader>
+            <DialogTitle className={isDarkMode ? 'text-white' : 'text-slate-800'}>
+              Find Collaborators
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label className={isDarkMode ? 'text-white' : 'text-slate-700'}>Search by Name or Skills</Label>
+              <Input
+                placeholder="Enter name, skills, or interests..."
+                className={isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white'}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className={isDarkMode ? 'text-white' : 'text-slate-700'}>Department</Label>
+              <Select>
+                <SelectTrigger className={isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white'}>
+                  <SelectValue placeholder="Select department" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cs">Computer Science</SelectItem>
+                  <SelectItem value="it">Information Technology</SelectItem>
+                  <SelectItem value="ece">Electronics & Communication</SelectItem>
+                  <SelectItem value="me">Mechanical Engineering</SelectItem>
+                  <SelectItem value="ce">Civil Engineering</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label className={isDarkMode ? 'text-white' : 'text-slate-700'}>Skills</Label>
+              <Input
+                placeholder="e.g., React, Python, Machine Learning..."
+                className={isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white'}
+              />
+            </div>
+            <div className="flex justify-end space-x-2 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => setShowCollaboratorsDialog(false)}
+                className={isDarkMode ? 'border-gray-600 text-gray-300' : ''}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  alert('Search functionality coming soon!');
+                  setShowCollaboratorsDialog(false);
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                Search
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Browse Templates Dialog */}
+      <Dialog open={showTemplatesDialog} onOpenChange={setShowTemplatesDialog}>
+        <DialogContent className={isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}>
+          <DialogHeader>
+            <DialogTitle className={isDarkMode ? 'text-white' : 'text-slate-800'}>
+              Browse Project Templates
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <Card className={`cursor-pointer hover:shadow-lg transition-all ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                <CardContent className="p-4">
+                  <div className="text-center">
+                    <Code className="h-8 w-8 mx-auto mb-2 text-blue-500" />
+                    <h4 className={`font-semibold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>React App</h4>
+                    <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-slate-600'}`}>Modern web app template</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className={`cursor-pointer hover:shadow-lg transition-all ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                <CardContent className="p-4">
+                  <div className="text-center">
+                    <Github className="h-8 w-8 mx-auto mb-2 text-green-500" />
+                    <h4 className={`font-semibold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>Python API</h4>
+                    <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-slate-600'}`}>REST API with FastAPI</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className={`cursor-pointer hover:shadow-lg transition-all ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                <CardContent className="p-4">
+                  <div className="text-center">
+                    <LayoutTemplate className="h-8 w-8 mx-auto mb-2 text-purple-500" />
+                    <h4 className={`font-semibold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>Mobile App</h4>
+                    <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-slate-600'}`}>React Native template</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className={`cursor-pointer hover:shadow-lg transition-all ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                <CardContent className="p-4">
+                  <div className="text-center">
+                    <Activity className="h-8 w-8 mx-auto mb-2 text-orange-500" />
+                    <h4 className={`font-semibold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>Data Science</h4>
+                    <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-slate-600'}`}>Jupyter notebook setup</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+            <div className="flex justify-end space-x-2 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => setShowTemplatesDialog(false)}
+                className={isDarkMode ? 'border-gray-600 text-gray-300' : ''}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  alert('Template selection coming soon!');
+                  setShowTemplatesDialog(false);
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                Use Template
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Import Local Project Dialog */}
+      <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
+        <DialogContent className={isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}>
+          <DialogHeader>
+            <DialogTitle className={isDarkMode ? 'text-white' : 'text-slate-800'}>
+              Import Local Project
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className={`border-2 border-dashed rounded-lg p-8 text-center ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`}>
+              <Upload className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+              <h4 className={`text-lg font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
+                Upload Project Files
+              </h4>
+              <p className={`mb-4 ${isDarkMode ? 'text-gray-400' : 'text-slate-600'}`}>
+                Drag and drop your project folder or click to browse
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  const input = document.createElement('input');
+                  input.type = 'file';
+                  input.webkitdirectory = true;
+                  input.onchange = (e) => {
+                    alert('File upload functionality coming soon!');
+                  };
+                  input.click();
+                }}
+                className={isDarkMode ? 'border-gray-600 text-gray-300' : ''}
+              >
+                Choose Folder
+              </Button>
+            </div>
+            <div className="space-y-2">
+              <Label className={isDarkMode ? 'text-white' : 'text-slate-700'}>Project Name</Label>
+              <Input
+                placeholder="Enter project name"
+                className={isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white'}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className={isDarkMode ? 'text-white' : 'text-slate-700'}>Description</Label>
+              <Input
+                placeholder="Brief description of your project"
+                className={isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white'}
+              />
+            </div>
+            <div className="flex justify-end space-x-2 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => setShowImportDialog(false)}
+                className={isDarkMode ? 'border-gray-600 text-gray-300' : ''}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  alert('Import functionality coming soon!');
+                  setShowImportDialog(false);
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                Import Project
               </Button>
             </div>
           </div>
