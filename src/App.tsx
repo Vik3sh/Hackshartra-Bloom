@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import AuthPage from "./components/auth/AuthPage";
 import MyProjectsPage from "./pages/MyProjectsPage";
 import GitHubCallback from "./pages/GitHubCallback";
+import CertificateManagement from "./pages/CertificateManagement";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,8 @@ const App = () => {
             <Route path="/projects" element={<MyProjectsPage />} />
             <Route path="/auth/github/callback" element={<GitHubCallback />} />
             <Route path="/auth" element={<AuthPage />} />
+            <Route path="/certificates" element={<CertificateManagement />} />
+            <Route path="/certificate-management" element={<CertificateManagement />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
