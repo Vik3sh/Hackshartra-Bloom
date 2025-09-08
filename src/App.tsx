@@ -23,25 +23,6 @@ const queryClient = new QueryClient();
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
-
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/dashboard" element={<Index />} />
-            <Route path="/projects" element={<MyProjectsPage />} />
-            <Route path="/activities" element={<MyActivitiesPage />} />
-            <Route path="/events/:id" element={<EventDetailsPage />} />
-            <Route path="/auth/github/callback" element={<GitHubCallback />} />
-            <Route path="/auth" element={<AuthPage />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-
       <BlockchainProvider>
         <TooltipProvider>
           <Toaster />
@@ -53,6 +34,7 @@ const App = () => {
               <Route path="/projects" element={<MyProjectsPage />} />
               <Route path="/activities" element={<MyActivitiesPage />} />
               <Route path="/platforms" element={<PlatformConnectPage />} />
+              <Route path="/events/:id" element={<EventDetailsPage />} />
               <Route path="/auth/github/callback" element={<GitHubCallback />} />
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/certificates" element={<CertificateManagement />} />
@@ -63,7 +45,6 @@ const App = () => {
           </BrowserRouter>
         </TooltipProvider>
       </BlockchainProvider>
-
     </QueryClientProvider>
   );
 };
