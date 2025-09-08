@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
@@ -11,6 +11,7 @@ import FacultyDashboardSection from '@/components/sections/FacultyDashboardSecti
 const HomePage: React.FC = () => {
   const { user, signOut, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading } = useProfile();
+  const navigate = useNavigate();
   const [activeSection, setActiveSection] = React.useState<string | null>(null);
   const [isDarkMode, setIsDarkMode] = React.useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = React.useState(false);
@@ -57,7 +58,7 @@ const HomePage: React.FC = () => {
     // For other sections, show alerts for now
     switch(section) {
       case 'certificates':
-        alert('Certificate Management - Coming Soon!');
+        navigate('/certificate-management');
         break;
       case 'activities':
         window.location.href = '/activities';
