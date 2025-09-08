@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BookOpen, Calendar, Star, Clock, Settings } from 'lucide-react';
+import { EVENTS } from '@/lib/events';
 
 interface DiscoverSectionProps {
   isDarkMode: boolean;
@@ -20,6 +22,7 @@ interface DiscoverSectionProps {
 
 const DiscoverSection: React.FC<DiscoverSectionProps> = ({ isDarkMode, userPreferences, onPreferencesChange }) => {
   const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);
+  const navigate = useNavigate();
   const [tempPreferences, setTempPreferences] = useState(userPreferences);
 
   const handleSavePreferences = () => {
@@ -71,32 +74,7 @@ const DiscoverSection: React.FC<DiscoverSectionProps> = ({ isDarkMode, userPrefe
     }
   ];
 
-  const upcomingEvents = [
-    {
-      id: 1,
-      title: "Tech Innovation Summit 2024",
-      date: "March 15, 2024",
-      time: "9:00 AM - 5:00 PM",
-      location: "Main Auditorium",
-      type: "conference"
-    },
-    {
-      id: 2,
-      title: "Hackathon: Sustainable Solutions",
-      date: "March 22, 2024",
-      time: "10:00 AM - 6:00 PM",
-      location: "Computer Lab 2",
-      type: "competition"
-    },
-    {
-      id: 3,
-      title: "Career Fair 2024",
-      date: "March 28, 2024",
-      time: "11:00 AM - 4:00 PM",
-      location: "Sports Complex",
-      type: "career"
-    }
-  ];
+  const upcomingEvents = EVENTS;
 
   return (
     <div className="space-y-4">
@@ -109,7 +87,7 @@ const DiscoverSection: React.FC<DiscoverSectionProps> = ({ isDarkMode, userPrefe
             Personalized recommendations based on your interests
           </p>
         </div>
-        
+
         <Dialog open={isCustomizeOpen} onOpenChange={setIsCustomizeOpen}>
           <DialogTrigger asChild>
             <Button variant="outline" size="sm" className="flex items-center space-x-1 text-xs px-3 py-1.5">
@@ -123,7 +101,7 @@ const DiscoverSection: React.FC<DiscoverSectionProps> = ({ isDarkMode, userPrefe
                 Customize Your Preferences
               </DialogTitle>
             </DialogHeader>
-            
+
             <div className="space-y-6">
               {/* Interests */}
               <div className="space-y-3">
@@ -228,12 +206,11 @@ const DiscoverSection: React.FC<DiscoverSectionProps> = ({ isDarkMode, userPrefe
                 Recommended Courses
               </h4>
             </div>
-            
+
             <div className="space-y-3">
               {recommendedCourses.map((course) => (
-                <div key={course.id} className={`p-3 rounded-lg border ${
-                  isDarkMode ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50/50 border-gray-200'
-                } hover:shadow-md transition-all duration-200`}>
+                <div key={course.id} className={`p-3 rounded-lg border ${isDarkMode ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50/50 border-gray-200'
+                  } hover:shadow-md transition-all duration-200`}>
                   <div className="flex items-start justify-between mb-2">
                     <h5 className={`font-medium text-sm ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
                       {course.title}
@@ -274,39 +251,43 @@ const DiscoverSection: React.FC<DiscoverSectionProps> = ({ isDarkMode, userPrefe
                 Upcoming Events
               </h4>
             </div>
-            
+
             <div className="space-y-3">
               {upcomingEvents.map((event) => (
-                <div key={event.id} className={`p-3 rounded-lg border ${
-                  isDarkMode ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50/50 border-gray-200'
-                } hover:shadow-md transition-all duration-200`}>
+                <div key={event.id} className={`p-3 rounded-lg border ${isDarkMode ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50/50 border-gray-200'
+                  } hover:shadow-md transition-all duration-200 cursor-pointer`}
+                  onClick={() => navigate(`/events/${event.id}`)}
+                >
                   <div className="flex items-start justify-between mb-2">
                     <h5 className={`font-medium text-sm ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
                       {event.title}
                     </h5>
-                    <Badge className={`text-xs px-2 py-0.5 ${
-                      event.type === 'conference' ? 'bg-purple-100 text-purple-700' :
+                    <Badge className={`text-xs px-2 py-0.5 ${event.type === 'conference' ? 'bg-purple-100 text-purple-700' :
                       event.type === 'competition' ? 'bg-orange-100 text-orange-700' :
-                      'bg-green-100 text-green-700'
-                    }`}>
+                        'bg-green-100 text-green-700'
+                      }`}>
                       {event.type}
                     </Badge>
                   </div>
                   <div className="space-y-1 text-xs text-slate-600">
                     <p className={`flex items-center space-x-1 ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}>
                       <Calendar className="h-3 w-3" />
-                      <span>{event.date}</span>
+                      <span>{new Date(event.dateISO).toLocaleString()}</span>
                     </p>
-                    <p className={`flex items-center space-x-1 ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}>
-                      <Clock className="h-3 w-3" />
-                      <span>{event.time}</span>
-                    </p>
+                    {event.endDateISO && (
+                      <p className={`flex items-center space-x-1 ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}>
+                        <Clock className="h-3 w-3" />
+                        <span>{new Date(event.endDateISO).toLocaleTimeString()}</span>
+                      </p>
+                    )}
                     <p className={`flex items-center space-x-1 ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}>
                       <span>📍</span>
                       <span>{event.location}</span>
                     </p>
                   </div>
-                  <Button size="sm" variant="outline" className="w-full mt-2 text-xs py-1.5">
+                  <Button size="sm" variant="outline" className="w-full mt-2 text-xs py-1.5"
+                    onClick={(e) => { e.stopPropagation(); navigate(`/events/${event.id}`); }}
+                  >
                     Register
                   </Button>
                 </div>

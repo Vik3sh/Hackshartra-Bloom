@@ -10,6 +10,7 @@ import AuthPage from "./components/auth/AuthPage";
 import MyProjectsPage from "./pages/MyProjectsPage";
 import MyActivitiesPage from "./pages/MyActivitiesPage";
 import GitHubCallback from "./pages/GitHubCallback";
+import EventDetailsPage from "./pages/EventDetailsPage";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ const App = () => {
             <Route path="/dashboard" element={<Index />} />
             <Route path="/projects" element={<MyProjectsPage />} />
             <Route path="/activities" element={<MyActivitiesPage />} />
+            <Route path="/events/:id" element={<EventDetailsPage />} />
             <Route path="/auth/github/callback" element={<GitHubCallback />} />
             <Route path="/auth" element={<AuthPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
