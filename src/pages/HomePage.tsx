@@ -5,17 +5,20 @@ import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import TopNavigationBar from '@/components/layout/TopNavigationBar';
 import HeroSection from '@/components/sections/HeroSection';
-import StudentDashboardSection from '@/components/sections/StudentDashboardSection';
-import FacultyDashboardSection from '@/components/sections/FacultyDashboardSection';
+import DiscoverSection from '@/components/sections/DiscoverSection';
 
 const HomePage: React.FC = () => {
   const { user, signOut, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading } = useProfile();
   const navigate = useNavigate();
-  const [activeSection, setActiveSection] = React.useState<string | null>(null);
   const [isDarkMode, setIsDarkMode] = React.useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = React.useState(false);
   const [showNotificationsDropdown, setShowNotificationsDropdown] = React.useState(false);
+  const [userPreferences, setUserPreferences] = React.useState({
+    interests: [] as string[],
+    skillLevel: 'beginner',
+    preferredCategories: [] as string[]
+  });
 
   // Close dropdown when clicking outside
   React.useEffect(() => {
@@ -44,47 +47,8 @@ const HomePage: React.FC = () => {
     }
   }, [isDarkMode]);
 
-  // Navigation handlers
-  const handleNavigation = (section: string) => {
-    setActiveSection(section);
-    console.log(`Navigating to: ${section}`);
-    
-    // Handle project navigation
-    if (section === 'projects') {
-      window.location.href = '/projects';
-      return;
-    }
-    
-    // For other sections, show alerts for now
-    switch(section) {
-      case 'certificates':
-        navigate('/certificate-management');
-        break;
-      case 'activities':
-        window.location.href = '/activities';
-        break;
-      case 'academic':
-        alert('Academic Achievements - Coming Soon!');
-        break;
-      case 'portfolio':
-        alert('Portfolio Generator - Coming Soon!');
-        break;
-      case 'notifications':
-        alert('Notifications - Coming Soon!');
-        break;
-      default:
-        break;
-    }
-  };
-
-  const handleViewDashboard = () => {
-    const element = document.getElementById('dashboard-section');
-    element?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const handleFacultyViewDashboard = () => {
-    const element = document.getElementById('faculty-dashboard-section');
-    element?.scrollIntoView({ behavior: 'smooth' });
+  const handlePreferencesChange = (preferences: any) => {
+    setUserPreferences(preferences);
   };
 
   if (authLoading || profileLoading) {
@@ -98,23 +62,10 @@ const HomePage: React.FC = () => {
     );
   }
 
-  if (!user) {
-    return (
-      <div className="h-screen bg-gradient-to-br from-slate-50 to-blue-50 snap-y snap-mandatory overflow-y-scroll scroll-smooth scrollbar-hide">
-        <HeroSection 
-          isDarkMode={isDarkMode} 
-          isLoggedIn={false}
-          profile={null}
-        />
-      </div>
-    );
-  }
-
-  // Student Dashboard Section
-  if (profile?.role === 'student') {
-    return (
-      <div className={`min-h-screen transition-colors duration-300 ${isDarkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-slate-50 to-blue-50'}`}>
-        {/* Top Navigation Bar */}
+  return (
+    <div className={`min-h-screen transition-colors duration-300 ${isDarkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-blue-50 via-white to-green-50'}`}>
+      {/* Navigation Bar - only show if user is logged in */}
+      {user && (
         <TopNavigationBar
           isDarkMode={isDarkMode}
           setIsDarkMode={setIsDarkMode}
@@ -124,68 +75,32 @@ const HomePage: React.FC = () => {
           setShowNotificationsDropdown={setShowNotificationsDropdown}
           profile={profile}
           signOut={signOut}
-          isStudent={true}
+          isStudent={profile?.role === 'student'}
         />
+      )}
 
-        {/* Main Content Container with Scroll Snapping */}
-        <div 
-          className={`h-screen overflow-y-scroll scroll-smooth scrollbar-hide transition-colors duration-300 ${
-            isDarkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-slate-50 to-blue-50'
-          }`}
-          style={{
-            scrollSnapType: 'y mandatory',
-            height: 'calc(100vh - 60px)',
-            marginTop: '60px',
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none'
-          }}
-        >
-          {/* Hero Section with Scroll Snap */}
-          <div 
-            className="h-screen flex items-center justify-center"
-            style={{ scrollSnapAlign: 'start' }}
-          >
-            <HeroSection 
-              isDarkMode={isDarkMode} 
-              isLoggedIn={true} 
-              onViewDashboard={handleViewDashboard}
-              profile={profile}
+      {/* Main Content */}
+      <div className={`${user ? 'pt-16' : ''}`}>
+        {/* Hero Section */}
+        <section className="min-h-screen flex items-center justify-center px-4">
+          <HeroSection 
+            isDarkMode={isDarkMode} 
+            isLoggedIn={!!user}
+            profile={profile}
+          />
+        </section>
+
+        {/* Environmental Learning Topics Section */}
+        <section className="py-16 px-4">
+          <div className="max-w-6xl mx-auto">
+            <DiscoverSection
+              isDarkMode={isDarkMode}
+              userPreferences={userPreferences}
+              onPreferencesChange={handlePreferencesChange}
             />
           </div>
-
-          {/* Student Dashboard Section with Scroll Snap */}
-          <StudentDashboardSection
-            isDarkMode={isDarkMode}
-            activeSection={activeSection}
-            onNavigation={handleNavigation}
-          />
-        </div>
+        </section>
       </div>
-    );
-  }
-
-  // Faculty Dashboard Section
-  return (
-    <div className={`min-h-screen transition-colors duration-300 ${isDarkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-slate-50 to-blue-50'}`}>
-      {/* Faculty Navigation Bar */}
-      <TopNavigationBar
-        isDarkMode={isDarkMode}
-        setIsDarkMode={setIsDarkMode}
-        showProfileDropdown={showProfileDropdown}
-        setShowProfileDropdown={setShowProfileDropdown}
-        showNotificationsDropdown={showNotificationsDropdown}
-        setShowNotificationsDropdown={setShowNotificationsDropdown}
-        profile={profile}
-        signOut={signOut}
-        isStudent={false}
-      />
-
-      {/* Faculty Dashboard Section */}
-      <FacultyDashboardSection
-        isDarkMode={isDarkMode}
-        profile={profile}
-        onViewDashboard={handleFacultyViewDashboard}
-      />
     </div>
   );
 };

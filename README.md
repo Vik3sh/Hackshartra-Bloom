@@ -1,73 +1,232 @@
-# Welcome to your Lovable project
+# 🌱 Environmental Education Platform
 
-## Project info
+A gamified environmental education platform for schools and colleges, built with React, TypeScript, Supabase, and Firebase.
 
-**URL**: https://lovable.dev/projects/7d4648d3-ea39-4afe-add0-c523062998e1
+## 🎯 Project Overview
 
-## How can I edit this code?
+This platform uses gamification (quizzes, simulations, badges, leaderboards) to teach students about environmental issues like climate change, waste management, renewable energy, and conservation.
 
-There are several ways of editing your application.
+### Key Features
+- **Interactive Learning Games** - Environmental quizzes and simulations
+- **Eco-Challenges & Missions** - Gamified learning experiences
+- **Badge System** - Achievement tracking and rewards
+- **Leaderboards** - Friendly competition among students
+- **Curriculum Integration** - Aligned with educational standards
+- **Localized Content** - Regional environmental issues focus
+- **Multi-role Support** - Students, Teachers, and Administrators
 
-**Use Lovable**
+## 🏗️ Architecture
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/7d4648d3-ea39-4afe-add0-c523062998e1) and start prompting.
+### Frontend (React + TypeScript)
+- **Authentication**: Supabase Auth → Backend JWT Verification → Firebase Custom Token
+- **Data Storage**: Firebase Firestore with security rules
+- **UI Framework**: React + shadcn/ui components
+- **State Management**: React Context + React Query
 
-Changes made via Lovable will be committed automatically to this repo.
+### Backend (Node.js + Express)
+- **JWT Verification**: Supabase JWT → Firebase Custom Token
+- **Firebase Admin SDK**: User management and data operations
+- **API Routes**: Authentication and data endpoints
 
-**Use your preferred IDE**
+### Database
+- **Supabase**: User authentication and profiles
+- **Firebase Firestore**: Application data and user progress
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## 🚀 Quick Start
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Prerequisites
+- Node.js 18+ 
+- npm or yarn
+- Supabase account
+- Firebase account
 
-Follow these steps:
+### 1. Clone the Repository
+```bash
+git clone <repository-url>
+cd environmental-education-platform
+```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### 2. Install Dependencies
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+#### Frontend
+```bash
+npm install
+```
 
-# Step 3: Install the necessary dependencies.
-npm i
+#### Backend
+```bash
+cd backend
+npm install
+```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+### 3. Environment Setup
+
+#### Frontend (.env.local)
+```bash
+cp env.example .env.local
+```
+
+Fill in your Supabase and Firebase credentials:
+```env
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_FIREBASE_API_KEY=your_firebase_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_project_id.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_firebase_project_id
+# ... other Firebase config
+VITE_API_URL=http://localhost:3001/api
+```
+
+#### Backend (.env)
+```bash
+cd backend
+cp env.example .env
+```
+
+Fill in your backend credentials:
+```env
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
+FIREBASE_PROJECT_ID=your_firebase_project_id
+FIREBASE_CLIENT_EMAIL=your_firebase_client_email
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nYour private key here\n-----END PRIVATE KEY-----\n"
+```
+
+### 4. Database Setup
+
+#### Supabase Setup
+1. Create a new Supabase project
+2. Enable authentication
+3. Set up user profiles table
+4. Configure RLS policies
+
+#### Firebase Setup
+1. Create a new Firebase project
+2. Enable Authentication and Firestore
+3. Generate service account key
+4. Set up Firestore security rules
+
+### 5. Run the Application
+
+#### Start Backend
+```bash
+cd backend
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+#### Start Frontend
+```bash
+npm run dev
+```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Visit `http://localhost:5173` to see the application.
 
-**Use GitHub Codespaces**
+## 🔐 Authentication Flow
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+1. **User signs in with Supabase** (email/password)
+2. **Supabase issues JWT token**
+3. **Frontend sends JWT to backend** (`/api/auth/firebase-token`)
+4. **Backend verifies Supabase JWT** using JWKS
+5. **Backend creates Firebase custom token** using Admin SDK
+6. **Frontend exchanges custom token** for Firebase session
+7. **User can now access Firestore** with Firebase security rules
 
-## What technologies are used for this project?
+## 📁 Project Structure
 
-This project is built with:
+```
+environmental-education-platform/
+├── src/                          # Frontend source code
+│   ├── components/               # React components
+│   │   ├── ui/                  # shadcn/ui components
+│   │   ├── auth/                # Authentication components
+│   │   ├── dashboard/           # Dashboard components
+│   │   └── sections/            # Page sections
+│   ├── contexts/                # React contexts
+│   ├── hooks/                   # Custom hooks
+│   ├── integrations/            # External service integrations
+│   │   ├── supabase/           # Supabase client
+│   │   └── firebase/           # Firebase client
+│   ├── pages/                   # Page components
+│   └── services/                # API services
+├── backend/                     # Backend API
+│   ├── src/
+│   │   ├── config/             # Configuration files
+│   │   ├── routes/             # API routes
+│   │   ├── middleware/         # Express middleware
+│   │   └── types/              # TypeScript types
+│   └── package.json
+├── public/                      # Static assets
+└── README.md
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## 🎮 Environmental Learning Topics
 
-## How can I deploy this project?
+- Climate Change & Global Warming
+- Waste Management & Recycling
+- Water Conservation & Sanitation
+- Air Pollution & Energy Conservation
+- Biodiversity & Ecosystems
+- Sustainable Agriculture & Food Systems
+- Renewable Energy Sources
 
-Simply open [Lovable](https://lovable.dev/projects/7d4648d3-ea39-4afe-add0-c523062998e1) and click on Share -> Publish.
+## 🛠️ Development
 
-## Can I connect a custom domain to my Lovable project?
+### Available Scripts
 
-Yes, you can!
+#### Frontend
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+#### Backend
+- `npm run dev` - Start development server with hot reload
+- `npm run build` - Build TypeScript
+- `npm start` - Start production server
+- `npm test` - Run tests
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+### Code Style
+- TypeScript for type safety
+- ESLint for code quality
+- Prettier for code formatting
+- Conventional commits
+
+## 🚀 Deployment
+
+### Frontend (Vercel/Netlify)
+1. Build the project: `npm run build`
+2. Deploy the `dist` folder
+3. Set environment variables
+
+### Backend (Railway/Heroku)
+1. Build the project: `npm run build`
+2. Deploy with environment variables
+3. Ensure Firebase Admin SDK credentials are set
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit changes: `git commit -m 'Add amazing feature'`
+4. Push to branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Government of Punjab for the problem statement
+- Supabase for authentication
+- Firebase for data storage
+- shadcn/ui for UI components
+- React community for excellent tooling
+
+## 📞 Support
+
+For support, email support@environmental-education.com or create an issue in the repository.
+
+---
+
+**Built with ❤️ for Environmental Education**

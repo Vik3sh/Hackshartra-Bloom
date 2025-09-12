@@ -90,89 +90,103 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Typing.com inspired color scheme - Blue/White with Green accents */
+    --background: 0 0% 100%; /* Pure white background */
+    --foreground: 214 32% 17%; /* Dark blue-gray text */
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%; /* White cards */
+    --card-foreground: 214 32% 17%; /* Dark blue-gray text on cards */
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%; /* White popovers */
+    --popover-foreground: 214 32% 17%; /* Dark blue-gray text */
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 214 100% 50%; /* Bright blue primary (like typing.com) */
+    --primary-foreground: 0 0% 100%; /* White text on blue */
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 214 20% 95%; /* Light blue-gray secondary */
+    --secondary-foreground: 214 32% 17%; /* Dark blue-gray text */
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 214 20% 95%; /* Light blue-gray muted */
+    --muted-foreground: 214 20% 45%; /* Medium blue-gray muted text */
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 142 76% 36%; /* Green accent (like typing.com progress) */
+    --accent-foreground: 0 0% 100%; /* White text on green */
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%; /* Red for errors */
+    --destructive-foreground: 0 0% 100%; /* White text on red */
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 214 20% 90%; /* Light blue-gray borders */
+    --input: 214 20% 90%; /* Light blue-gray input borders */
+    --ring: 214 100% 50%; /* Blue focus ring */
 
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 98%;
+    /* Sidebar colors matching typing.com */
+    --sidebar-background: 214 20% 98%; /* Very light blue-gray */
+    --sidebar-foreground: 214 32% 17%; /* Dark blue-gray text */
+    --sidebar-primary: 214 100% 50%; /* Blue primary */
+    --sidebar-primary-foreground: 0 0% 100%; /* White text */
+    --sidebar-accent: 214 20% 95%; /* Light blue-gray accent */
+    --sidebar-accent-foreground: 214 32% 17%; /* Dark blue-gray text */
+    --sidebar-border: 214 20% 90%; /* Light blue-gray borders */
+    --sidebar-ring: 214 100% 50%; /* Blue focus ring */
 
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Environmental Education specific colors */
+    --success: 142 76% 36%; /* Green for success/progress */
+    --success-foreground: 0 0% 100%;
+    --warning: 45 93% 47%; /* Yellow for warnings */
+    --warning-foreground: 0 0% 0%;
+    --info: 214 100% 50%; /* Blue for info */
+    --info-foreground: 0 0% 100%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    /* Dark mode with typing.com inspired colors */
+    --background: 214 32% 8%; /* Very dark blue-gray */
+    --foreground: 214 20% 95%; /* Light blue-gray text */
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 214 32% 12%; /* Dark blue-gray cards */
+    --card-foreground: 214 20% 95%; /* Light blue-gray text on cards */
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 214 32% 12%; /* Dark blue-gray popovers */
+    --popover-foreground: 214 20% 95%; /* Light blue-gray text */
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 214 100% 60%; /* Brighter blue for dark mode */
+    --primary-foreground: 0 0% 100%; /* White text on blue */
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 214 20% 20%; /* Medium blue-gray secondary */
+    --secondary-foreground: 214 20% 95%; /* Light blue-gray text */
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 214 20% 20%; /* Medium blue-gray muted */
+    --muted-foreground: 214 20% 65%; /* Medium blue-gray muted text */
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 142 76% 45%; /* Brighter green for dark mode */
+    --accent-foreground: 0 0% 100%; /* White text on green */
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%; /* Red for errors */
+    --destructive-foreground: 0 0% 100%; /* White text on red */
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --border: 214 20% 25%; /* Medium blue-gray borders */
+    --input: 214 20% 25%; /* Medium blue-gray input borders */
+    --ring: 214 100% 60%; /* Brighter blue focus ring */
+
+    /* Dark mode sidebar colors */
+    --sidebar-background: 214 32% 10%; /* Dark blue-gray */
+    --sidebar-foreground: 214 20% 95%; /* Light blue-gray text */
+    --sidebar-primary: 214 100% 60%; /* Brighter blue primary */
+    --sidebar-primary-foreground: 0 0% 100%; /* White text */
+    --sidebar-accent: 214 20% 20%; /* Medium blue-gray accent */
+    --sidebar-accent-foreground: 214 20% 95%; /* Light blue-gray text */
+    --sidebar-border: 214 20% 25%; /* Medium blue-gray borders */
+    --sidebar-ring: 214 100% 60%; /* Brighter blue focus ring */
+
+    /* Environmental Education specific colors for dark mode */
+    --success: 142 76% 45%; /* Brighter green for dark mode */
+    --success-foreground: 0 0% 100%;
+    --warning: 45 93% 55%; /* Brighter yellow for dark mode */
+    --warning-foreground: 0 0% 0%;
+    --info: 214 100% 60%; /* Brighter blue for dark mode */
+    --info-foreground: 0 0% 100%;
   }
 }
 

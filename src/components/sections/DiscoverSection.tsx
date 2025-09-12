@@ -1,14 +1,11 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { BookOpen, Calendar, Star, Clock, Settings } from 'lucide-react';
-import { EVENTS } from '@/lib/events';
+import { Leaf, Settings, Gamepad2, Trophy, Target } from 'lucide-react';
 
 interface DiscoverSectionProps {
   isDarkMode: boolean;
@@ -22,7 +19,6 @@ interface DiscoverSectionProps {
 
 const DiscoverSection: React.FC<DiscoverSectionProps> = ({ isDarkMode, userPreferences, onPreferencesChange }) => {
   const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);
-  const navigate = useNavigate();
   const [tempPreferences, setTempPreferences] = useState(userPreferences);
 
   const handleSavePreferences = () => {
@@ -40,51 +36,27 @@ const DiscoverSection: React.FC<DiscoverSectionProps> = ({ isDarkMode, userPrefe
         : [...prev.interests, interest]
     }));
   };
-  // Mock data based on user preferences
-  const recommendedCourses = [
-    {
-      id: 1,
-      title: "Advanced React Development",
-      instructor: "Dr. Sarah Johnson",
-      duration: "8 weeks",
-      rating: 4.8,
-      students: 1247,
-      category: "programming",
-      level: "intermediate"
-    },
-    {
-      id: 2,
-      title: "Machine Learning Fundamentals",
-      instructor: "Prof. Michael Chen",
-      duration: "12 weeks",
-      rating: 4.9,
-      students: 892,
-      category: "data-science",
-      level: "beginner"
-    },
-    {
-      id: 3,
-      title: "UI/UX Design Principles",
-      instructor: "Lisa Rodriguez",
-      duration: "6 weeks",
-      rating: 4.7,
-      students: 654,
-      category: "design",
-      level: "intermediate"
-    }
-  ];
 
-  const upcomingEvents = EVENTS;
+  // Environmental education categories
+  const environmentalCategories = [
+    "Climate Change & Global Warming",
+    "Waste Management & Recycling", 
+    "Water Conservation & Sanitation",
+    "Air Pollution & Energy Conservation",
+    "Biodiversity & Ecosystems",
+    "Sustainable Agriculture & Food Systems",
+    "Renewable Energy Sources"
+  ];
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h3 className={`text-xl font-bold mb-1 ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
-            Discover
+            Environmental Learning Topics
           </h3>
           <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}>
-            Personalized recommendations based on your interests
+            Choose your environmental interests for personalized learning
           </p>
         </div>
 
@@ -98,39 +70,39 @@ const DiscoverSection: React.FC<DiscoverSectionProps> = ({ isDarkMode, userPrefe
           <DialogContent className={`max-w-md ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}>
             <DialogHeader>
               <DialogTitle className={isDarkMode ? 'text-white' : 'text-slate-800'}>
-                Customize Your Preferences
+                Customize Your Environmental Interests
               </DialogTitle>
             </DialogHeader>
 
             <div className="space-y-6">
-              {/* Interests */}
+              {/* Environmental Categories */}
               <div className="space-y-3">
                 <Label className={isDarkMode ? 'text-white' : 'text-slate-700'}>
-                  Interests
+                  Environmental Topics
                 </Label>
-                <div className="grid grid-cols-2 gap-3">
-                  {['programming', 'data-science', 'design', 'business', 'academic', 'sports', 'arts', 'music'].map((interest) => (
-                    <div key={interest} className="flex items-center space-x-2">
+                <div className="grid grid-cols-1 gap-3">
+                  {environmentalCategories.map((category) => (
+                    <div key={category} className="flex items-center space-x-2">
                       <Checkbox
-                        id={interest}
-                        checked={tempPreferences.interests.includes(interest)}
-                        onCheckedChange={() => handleInterestToggle(interest)}
+                        id={category}
+                        checked={tempPreferences.interests.includes(category)}
+                        onCheckedChange={() => handleInterestToggle(category)}
                       />
                       <Label
-                        htmlFor={interest}
-                        className={`text-sm capitalize ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}
+                        htmlFor={category}
+                        className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}
                       >
-                        {interest.replace('-', ' ')}
+                        {category}
                       </Label>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Skill Level */}
+              {/* Learning Level */}
               <div className="space-y-3">
                 <Label className={isDarkMode ? 'text-white' : 'text-slate-700'}>
-                  Skill Level
+                  Learning Level
                 </Label>
                 <Select
                   value={tempPreferences.skillLevel}
@@ -147,37 +119,6 @@ const DiscoverSection: React.FC<DiscoverSectionProps> = ({ isDarkMode, userPrefe
                 </Select>
               </div>
 
-              {/* Categories */}
-              <div className="space-y-3">
-                <Label className={isDarkMode ? 'text-white' : 'text-slate-700'}>
-                  Preferred Categories
-                </Label>
-                <div className="grid grid-cols-2 gap-3">
-                  {['technology', 'academic', 'professional', 'creative', 'health', 'lifestyle'].map((category) => (
-                    <div key={category} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={category}
-                        checked={tempPreferences.preferredCategories.includes(category)}
-                        onCheckedChange={() => {
-                          setTempPreferences(prev => ({
-                            ...prev,
-                            preferredCategories: prev.preferredCategories.includes(category)
-                              ? prev.preferredCategories.filter(c => c !== category)
-                              : [...prev.preferredCategories, category]
-                          }));
-                        }}
-                      />
-                      <Label
-                        htmlFor={category}
-                        className={`text-sm capitalize ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}
-                      >
-                        {category}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
               {/* Action Buttons */}
               <div className="flex justify-end space-x-3 pt-4">
                 <Button
@@ -187,7 +128,7 @@ const DiscoverSection: React.FC<DiscoverSectionProps> = ({ isDarkMode, userPrefe
                 >
                   Cancel
                 </Button>
-                <Button onClick={handleSavePreferences} className="bg-blue-600 hover:bg-blue-700">
+                <Button onClick={handleSavePreferences} className="bg-green-600 hover:bg-green-700">
                   Save Preferences
                 </Button>
               </div>
@@ -196,102 +137,47 @@ const DiscoverSection: React.FC<DiscoverSectionProps> = ({ isDarkMode, userPrefe
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Recommended Courses */}
-        <Card className={`shadow-lg hover:shadow-xl transition-all duration-300 ${isDarkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900 border-gray-700' : 'bg-gradient-to-br from-white to-gray-50 border-gray-200'}`}>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2 mb-3">
-              <BookOpen className="h-4 w-4 text-blue-600" />
-              <h4 className={`text-base font-semibold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
-                Recommended Courses
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Environmental Learning Games */}
+        <Card className="shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 hover:border-blue-300">
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
+                <Gamepad2 className="h-5 w-5 text-white" />
+              </div>
+              <h4 className="text-lg font-semibold text-blue-900">
+                Interactive Learning Games
               </h4>
             </div>
 
-            <div className="space-y-3">
-              {recommendedCourses.map((course) => (
-                <div key={course.id} className={`p-3 rounded-lg border ${isDarkMode ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50/50 border-gray-200'
-                  } hover:shadow-md transition-all duration-200`}>
-                  <div className="flex items-start justify-between mb-2">
-                    <h5 className={`font-medium text-sm ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
-                      {course.title}
-                    </h5>
-                    <Badge className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5">
-                      {course.level}
-                    </Badge>
-                  </div>
-                  <p className={`text-xs mb-2 ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}>
-                    by {course.instructor}
-                  </p>
-                  <div className="flex items-center justify-between text-xs text-slate-500 mb-2">
-                    <span className="flex items-center space-x-1">
-                      <Clock className="h-3 w-3" />
-                      <span>{course.duration}</span>
-                    </span>
-                    <span className="flex items-center space-x-1">
-                      <Star className="h-3 w-3 text-yellow-500" />
-                      <span>{course.rating}</span>
-                    </span>
-                    <span className="text-xs">{course.students}</span>
-                  </div>
-                  <Button size="sm" className="w-full bg-blue-600 hover:bg-blue-700 text-xs py-1.5">
-                    Enroll Now
-                  </Button>
-                </div>
-              ))}
+            <div className="text-center py-8">
+              <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Leaf className="h-8 w-8 text-white" />
+              </div>
+              <p className="text-blue-700 font-medium">Environmental games and quizzes will appear here</p>
+              <p className="text-sm text-blue-600 mt-2">Choose your interests to get personalized content</p>
             </div>
           </CardContent>
         </Card>
 
-        {/* Upcoming Events */}
-        <Card className={`shadow-lg hover:shadow-xl transition-all duration-300 ${isDarkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900 border-gray-700' : 'bg-gradient-to-br from-white to-gray-50 border-gray-200'}`}>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2 mb-3">
-              <Calendar className="h-4 w-4 text-green-600" />
-              <h4 className={`text-base font-semibold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
-                Upcoming Events
+        {/* Eco-Challenges */}
+        <Card className="shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-green-50 to-green-100 border-green-200 hover:border-green-300">
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg flex items-center justify-center">
+                <Trophy className="h-5 w-5 text-white" />
+              </div>
+              <h4 className="text-lg font-semibold text-green-900">
+                Eco-Challenges & Missions
               </h4>
             </div>
 
-            <div className="space-y-3">
-              {upcomingEvents.map((event) => (
-                <div key={event.id} className={`p-3 rounded-lg border ${isDarkMode ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50/50 border-gray-200'
-                  } hover:shadow-md transition-all duration-200 cursor-pointer`}
-                  onClick={() => navigate(`/events/${event.id}`)}
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <h5 className={`font-medium text-sm ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
-                      {event.title}
-                    </h5>
-                    <Badge className={`text-xs px-2 py-0.5 ${event.type === 'conference' ? 'bg-purple-100 text-purple-700' :
-                      event.type === 'competition' ? 'bg-orange-100 text-orange-700' :
-                        'bg-green-100 text-green-700'
-                      }`}>
-                      {event.type}
-                    </Badge>
-                  </div>
-                  <div className="space-y-1 text-xs text-slate-600">
-                    <p className={`flex items-center space-x-1 ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}>
-                      <Calendar className="h-3 w-3" />
-                      <span>{new Date(event.dateISO).toLocaleString()}</span>
-                    </p>
-                    {event.endDateISO && (
-                      <p className={`flex items-center space-x-1 ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}>
-                        <Clock className="h-3 w-3" />
-                        <span>{new Date(event.endDateISO).toLocaleTimeString()}</span>
-                      </p>
-                    )}
-                    <p className={`flex items-center space-x-1 ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}>
-                      <span>📍</span>
-                      <span>{event.location}</span>
-                    </p>
-                  </div>
-                  <Button size="sm" variant="outline" className="w-full mt-2 text-xs py-1.5"
-                    onClick={(e) => { e.stopPropagation(); navigate(`/events/${event.id}`); }}
-                  >
-                    Register
-                  </Button>
-                </div>
-              ))}
+            <div className="text-center py-8">
+              <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Target className="h-8 w-8 text-white" />
+              </div>
+              <p className="text-green-700 font-medium">Environmental challenges and missions will appear here</p>
+              <p className="text-sm text-green-600 mt-2">Complete challenges to earn badges and points</p>
             </div>
           </CardContent>
         </Card>
