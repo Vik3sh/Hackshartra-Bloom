@@ -350,6 +350,178 @@ export const RPG_MAJOR_LEVELS: MajorLevel[] = [
       bossType: 'strategy',
       bossTheme: 'The ultimate energy challenge to prove your mastery'
     }
+  },
+  {
+    id: 'disaster-survival',
+    title: 'Disaster Survival',
+    description: 'Master survival skills during environmental disasters',
+    icon: '⚡',
+    color: 'orange',
+    theme: 'A realm where natural disasters test your survival skills',
+    order: 4,
+    isCompleted: false,
+    isLocked: false,
+    prerequisites: ['climate-kingdom'],
+    totalGames: 5,
+    completedGames: 0,
+    progress: 0,
+    subLevels: [
+      {
+        id: 'disaster-1',
+        title: 'Fire & Heat Survival',
+        description: 'Learn to survive wildfires and extreme heat',
+        order: 1,
+        isCompleted: false,
+        isLocked: false,
+        prerequisites: [],
+        games: [
+          {
+            id: 'fire-escape',
+            title: '🔥 Wildfire Prevention Challenge',
+            description: 'Learn fire safety and prevention strategies while escaping a wildfire',
+            type: 'action',
+            difficulty: 'medium',
+            duration: 5,
+            points: 100,
+            rewards: { water: 2, sunlight: 1, nutrients: 1 },
+            instructions: 'Use arrow keys to move and spacebar to jump. Collect water buckets and avoid flames!',
+            objectives: [
+              'Escape the wildfire safely',
+              'Collect at least 5 water buckets',
+              'Avoid touching flames',
+              'Reach the safe zone'
+            ],
+            isCompleted: false,
+            isLocked: false,
+            prerequisites: []
+          },
+          {
+            id: 'fire-escape-game',
+            title: '🔥 Fire Escape Game',
+            description: 'Navigate through a burning building to safety',
+            type: 'action',
+            difficulty: 'easy',
+            duration: 4,
+            points: 80,
+            rewards: { water: 2, sunlight: 0, nutrients: 1 },
+            instructions: 'Use arrow keys to move. Find the exit while avoiding flames and smoke!',
+            objectives: [
+              'Find the building exit',
+              'Avoid flames and smoke',
+              'Collect fire safety items',
+              'Escape within the time limit'
+            ],
+            isCompleted: false,
+            isLocked: false,
+            prerequisites: []
+          }
+        ]
+      },
+      {
+        id: 'disaster-2',
+        title: 'Storm & Water Survival',
+        description: 'Master survival during floods and cyclones',
+        order: 2,
+        isCompleted: false,
+        isLocked: false,
+        prerequisites: ['disaster-1'],
+        games: [
+          {
+            id: 'cyclone-survival',
+            title: '🌪️ Cyclone Survival',
+            description: 'Survive a powerful cyclone by making smart decisions and finding shelter',
+            type: 'action',
+            difficulty: 'hard',
+            duration: 8,
+            points: 150,
+            rewards: { water: 1, sunlight: 2, nutrients: 2 },
+            instructions: 'Navigate through the storm using arrow keys. Find shelter and avoid debris!',
+            objectives: [
+              'Find safe shelter before the storm hits',
+              'Avoid flying debris',
+              'Help other survivors',
+              'Survive for 2 minutes'
+            ],
+            isCompleted: false,
+            isLocked: false,
+            prerequisites: []
+          },
+          {
+            id: 'flood-escape',
+            title: '🌊 Flood Escape',
+            description: 'Escape rising floodwaters by making quick decisions',
+            type: 'action',
+            difficulty: 'medium',
+            duration: 7,
+            points: 130,
+            rewards: { water: 3, sunlight: 0, nutrients: 1 },
+            instructions: 'Use arrow keys to move. Stay on high ground and avoid deep water!',
+            objectives: [
+              'Stay on high ground',
+              'Avoid deep water areas',
+              'Help stranded people',
+              'Reach the evacuation center'
+            ],
+            isCompleted: false,
+            isLocked: false,
+            prerequisites: []
+          }
+        ]
+      },
+      {
+        id: 'disaster-3',
+        title: 'Earth & Ground Survival',
+        description: 'Survive earthquakes and ground-based disasters',
+        order: 3,
+        isCompleted: false,
+        isLocked: false,
+        prerequisites: ['disaster-2'],
+        games: [
+          {
+            id: 'earthquake-survival',
+            title: '🌋 Earthquake Survival',
+            description: 'Learn earthquake safety by surviving a major earthquake',
+            type: 'action',
+            difficulty: 'medium',
+            duration: 6,
+            points: 120,
+            rewards: { water: 1, sunlight: 1, nutrients: 2 },
+            instructions: 'Use WASD keys to move. Find cover under sturdy furniture and avoid falling objects!',
+            objectives: [
+              'Find cover under a sturdy table',
+              'Avoid falling objects',
+              'Help trapped survivors',
+              'Reach the evacuation point'
+            ],
+            isCompleted: false,
+            isLocked: false,
+            prerequisites: []
+          }
+        ]
+      }
+    ],
+    boss: {
+      id: 'disaster-master',
+      title: '🌪️ Disaster Master Challenge',
+      description: 'Face the ultimate test of survival skills against all natural disasters',
+      difficulty: 'extreme',
+      duration: 15,
+      points: 500,
+      rewards: { water: 5, sunlight: 5, nutrients: 5, fertilizer: 3, love: 2 },
+      instructions: 'Survive a sequence of different disasters. Use all your learned skills!',
+      objectives: [
+        'Survive a wildfire outbreak',
+        'Navigate through a cyclone',
+        'Escape a flood',
+        'Endure an earthquake',
+        'Help others throughout all disasters'
+      ],
+      isCompleted: false,
+      isLocked: false,
+      prerequisites: ['fire-escape', 'fire-escape-game', 'cyclone-survival', 'flood-escape', 'earthquake-survival'],
+      bossType: 'action',
+      bossTheme: 'The ultimate survival test combining all disaster scenarios'
+    }
   }
 ];
 
@@ -377,18 +549,33 @@ export const getGameById = (gameId: string): Game | undefined => {
 };
 
 export const canAccessMajorLevel = (levelId: string, completedLevels: string[]): boolean => {
+  // Check if developer mode is enabled
+  if (typeof window !== 'undefined' && localStorage.getItem('developerMode') === 'true') {
+    return true;
+  }
+  
   const level = getMajorLevelById(levelId);
   if (!level) return false;
   return level.prerequisites.every(prereqId => completedLevels.includes(prereqId));
 };
 
 export const canAccessSubLevel = (subLevelId: string, completedSubLevels: string[]): boolean => {
+  // Check if developer mode is enabled
+  if (typeof window !== 'undefined' && localStorage.getItem('developerMode') === 'true') {
+    return true;
+  }
+  
   const subLevel = getSubLevelById(subLevelId);
   if (!subLevel) return false;
   return subLevel.prerequisites.every(prereqId => completedSubLevels.includes(prereqId));
 };
 
 export const canAccessGame = (gameId: string, completedGames: string[]): boolean => {
+  // Check if developer mode is enabled
+  if (typeof window !== 'undefined' && localStorage.getItem('developerMode') === 'true') {
+    return true;
+  }
+  
   const game = getGameById(gameId);
   if (!game) return false;
   return game.prerequisites.every(prereqId => completedGames.includes(prereqId));

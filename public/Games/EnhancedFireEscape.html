@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔥 Fire Escape Game - Enhanced</title>
+    <style>
+        body {
+            margin: 0;
+            background: #0a0a0a;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #ecf0f1;
+            text-align: center;
+            overflow: hidden;
+            text-shadow: 1px 1px 3px black;
+        }
+        h1 {
+            font-size: 3em;
+            margin-top: 20px;
+            text-shadow: 0 0 15px #ff4500, 0 0 5px #ff4500;
+            letter-spacing: 2px;
+        }
+        p {
+            font-size: 1.1em;
+            color: #e67e22;
+        }
+        canvas {
+            background: linear-gradient(#1a1a1a, #000);
+            display: block;
+            margin: auto;
+            border: 5px solid #ff4500;
+            border-radius: 10px;
+            box-shadow: 0 0 40px #ff4500;
+            margin-top: 15px;
+        }
+        button {
+            margin-top: 25px;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            border: none;
+            border-radius: 50px;
+            background: #e74c3c;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 0 20px #e74c3c;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #c0392b;
+            transform: scale(1.05);
+            box-shadow: 0 0 30px #c0392b;
+        }
+        .instructions {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.7);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔥 Fire Escape</h1>
+    <p>Use ⬅️ ➡️ ⬆️ ⬇️ to move — Escape the burning building!</p>
+    <div class="instructions">
+        <div>🏃 Move with arrow keys</div>
+        <div>🔥 Avoid fire particles</div>
+        <div>🚪 Reach the green exit</div>
+    </div>
+    <canvas id="gameCanvas" width="550" height="420"></canvas>
+    <button id="restartBtn" style="display:none;">🔄 Restart</button>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        const restartBtn = document.getElementById("restartBtn");
+
+        let player, exit, fireParticles, keys, gameOver, win, gameRunning;
+
+        // Fire particle class with enhanced visuals
+        class FireParticle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 8 + 3;
+                this.speedY = Math.random() * 1.5 + 0.5;
+                this.speedX = (Math.random() - 0.5) * 2;
+                this.opacity = 1;
+                this.life = 1;
+                this.maxLife = 1;
+                this.color = `hsl(${Math.random() * 40 + 15}, 100%, ${50 + Math.random() * 30}%)`;
+                this.flicker = Math.random() * 0.1;
+            }
+
+            update() {
+                this.y -= this.speedY;
+                this.x += this.speedX;
+                this.life -= 0.015;
+                this.opacity = this.life;
+                this.size *= 0.995;
+                this.flicker += 0.2;
+            }
+
+            draw() {
+                const alpha = this.opacity;
+                const flickerIntensity = Math.sin(this.flicker) * 0.3 + 0.7;
+                
+                ctx.save();
+                ctx.globalAlpha = alpha * flickerIntensity;
+                
+                // Outer glow
+                ctx.shadowColor = this.color;
+                ctx.shadowBlur = 15;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size * 1.5, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Inner core
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = `hsl(${parseInt(this.color.match(/\d+/)[0])}, 100%, 80%)`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size * 0.6, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.restore();
+            }
+        }
+
+        // Enhanced fire wall class
+        class FireWall {
+            constructor(x, y, width, height) {
+                this.x = x;
+                this.y = y;
+                this.width = width;
+                this.height = height;
+                this.particles = [];
+                this.time = 0;
+            }
+
+            update() {
+                this.time += 0.1;
+                
+                // Generate particles along the wall
+                if (Math.random() < 0.3) {
+                    this.particles.push(new FireParticle(
+                        this.x + Math.random() * this.width,
+                        this.y + Math.random() * this.height
+                    ));
+                }
+
+                // Update particles
+                this.particles.forEach((p, i) => {
+                    p.update();
+                    if (p.life <= 0) {
+                        this.particles.splice(i, 1);
+                    }
+                });
+            }
+
+            draw() {
+                // Draw wall base
+                const gradient = ctx.createLinearGradient(this.x, this.y, this.x, this.y + this.height);
+                gradient.addColorStop(0, 'rgba(255, 100, 0, 0.8)');
+                gradient.addColorStop(0.5, 'rgba(255, 50, 0, 0.6)');
+                gradient.addColorStop(1, 'rgba(255, 0, 0, 0.4)');
+                
+                ctx.fillStyle = gradient;
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+
+                // Draw particles
+                this.particles.forEach(p => p.draw());
+            }
+
+            checkCollision(rect) {
+                return !(rect.x + rect.w < this.x || 
+                        rect.x > this.x + this.width || 
+                        rect.y + rect.h < this.y || 
+                        rect.y > this.y + this.height);
+            }
+        }
+
+        function initGame() {
+      player = { 
+        x: 20, 
+        y: 200, 
+        w: 30, 
+        h: 30, 
+        emoji: "🏃",
+        speed: 0.8,
+        velocityX: 0,
+        velocityY: 0,
+        friction: 0.7,
+        acceleration: 0.3
+      };
+            exit = { x: 500, y: 160, w: 35, h: 100 };
+            fireParticles = [];
+            keys = {};
+            gameOver = false;
+            win = false;
+            gameRunning = true;
+            restartBtn.style.display = "none";
+
+            // Create fire walls
+            fireWalls = [
+                new FireWall(100, 50, 80, 20),
+                new FireWall(200, 150, 60, 15),
+                new FireWall(300, 80, 70, 25),
+                new FireWall(150, 300, 90, 20),
+                new FireWall(400, 200, 50, 30)
+            ];
+
+            // Spawn floating fire particles
+            setInterval(() => {
+                if (gameRunning && !gameOver && !win) {
+                    for (let i = 0; i < 3; i++) {
+                        fireParticles.push(new FireParticle(
+                            Math.random() * canvas.width, 
+                            canvas.height + 10
+                        ));
+                    }
+                }
+            }, 150);
+
+            gameLoop();
+        }
+
+        // Smooth movement with key states
+        function setupEventListeners() {
+            keys = {
+                up: false,
+                down: false,
+                left: false,
+                right: false
+            };
+
+            const handleKeyDown = (e) => {
+                if (!gameRunning) return;
+                
+                switch(e.key) {
+                    case 'ArrowUp':
+                        e.preventDefault();
+                        keys.up = true;
+                        break;
+                    case 'ArrowDown':
+                        e.preventDefault();
+                        keys.down = true;
+                        break;
+                    case 'ArrowLeft':
+                        e.preventDefault();
+                        keys.left = true;
+                        break;
+                    case 'ArrowRight':
+                        e.preventDefault();
+                        keys.right = true;
+                        break;
+                }
+            };
+
+            const handleKeyUp = (e) => {
+                if (!gameRunning) return;
+                
+                switch(e.key) {
+                    case 'ArrowUp':
+                        e.preventDefault();
+                        keys.up = false;
+                        break;
+                    case 'ArrowDown':
+                        e.preventDefault();
+                        keys.down = false;
+                        break;
+                    case 'ArrowLeft':
+                        e.preventDefault();
+                        keys.left = false;
+                        break;
+                    case 'ArrowRight':
+                        e.preventDefault();
+                        keys.right = false;
+                        break;
+                }
+            };
+
+            // Direct keyboard events
+            document.addEventListener('keydown', handleKeyDown);
+            document.addEventListener('keyup', handleKeyUp);
+            
+            // Forwarded keyboard events from parent
+            window.addEventListener('message', (event) => {
+                if (event.data.type === 'KEYBOARD_EVENT') {
+                    if (event.data.key.startsWith('Arrow')) {
+                        const keyName = event.data.key.replace('Arrow', '').toLowerCase();
+                        if (['up', 'down', 'left', 'right'].includes(keyName)) {
+                            keys[keyName] = true;
+                            setTimeout(() => keys[keyName] = false, 100);
+                        }
+                    }
+                }
+            });
+        }
+
+        let lastTime = 0;
+        const targetFPS = 60;
+        const frameTime = 1000 / targetFPS;
+
+        function gameLoop(currentTime) {
+            if (currentTime - lastTime < frameTime) {
+                requestAnimationFrame(gameLoop);
+                return;
+            }
+            lastTime = currentTime;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw background grid
+            ctx.strokeStyle = 'rgba(255, 100, 0, 0.1)';
+            ctx.lineWidth = 1;
+            for (let x = 0; x < canvas.width; x += 20) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            for (let y = 0; y < canvas.height; y += 20) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+
+            // Update and draw fire walls
+            fireWalls.forEach(wall => {
+                wall.update();
+                wall.draw();
+            });
+
+            // Draw and update floating fire particles
+            fireParticles.forEach((p, i) => {
+                p.update();
+                p.draw();
+                if (p.life <= 0) {
+                    fireParticles.splice(i, 1);
+                }
+            });
+
+            // Draw player with smooth movement
+            ctx.font = "28px Arial";
+            ctx.fillText(player.emoji, player.x, player.y + 25);
+
+            // Draw exit door with enhanced visuals
+            const exitGradient = ctx.createLinearGradient(exit.x, exit.y, exit.x + exit.w, exit.y + exit.h);
+            exitGradient.addColorStop(0, '#2ecc71');
+            exitGradient.addColorStop(1, '#27ae60');
+            
+            ctx.fillStyle = exitGradient;
+            ctx.shadowColor = "rgba(46, 204, 113, 0.8)";
+            ctx.shadowBlur = 20;
+            ctx.fillRect(exit.x, exit.y, exit.w, exit.h);
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = "white";
+            ctx.font = "35px Arial";
+            ctx.fillText("🚪", exit.x + 3, exit.y + 65);
+
+            // Smooth player movement with acceleration
+            if (keys.left) {
+                player.velocityX -= player.acceleration;
+                if (player.velocityX < -player.speed) player.velocityX = -player.speed;
+            } else if (keys.right) {
+                player.velocityX += player.acceleration;
+                if (player.velocityX > player.speed) player.velocityX = player.speed;
+            } else {
+                player.velocityX *= player.friction;
+            }
+            
+            if (keys.up) {
+                player.velocityY -= player.acceleration;
+                if (player.velocityY < -player.speed) player.velocityY = -player.speed;
+            } else if (keys.down) {
+                player.velocityY += player.acceleration;
+                if (player.velocityY > player.speed) player.velocityY = player.speed;
+            } else {
+                player.velocityY *= player.friction;
+            }
+            
+            // Apply velocity
+            player.x += player.velocityX;
+            player.y += player.velocityY;
+
+            // Boundary check
+            player.x = Math.max(0, Math.min(canvas.width - player.w, player.x));
+            player.y = Math.max(0, Math.min(canvas.height - player.h, player.y));
+            
+            // Collision with fire walls
+            fireWalls.forEach(wall => {
+                if (wall.checkCollision(player)) {
+                    gameOver = true;
+                }
+            });
+
+            // Collision with floating fire particles
+            fireParticles.forEach(p => {
+                if (p.life > 0.5 && 
+                    player.x < p.x + p.size && 
+                    player.x + player.w > p.x - p.size && 
+                    player.y < p.y + p.size && 
+                    player.y + player.h > p.y - p.size) {
+                    gameOver = true;
+                }
+            });
+
+            // Exit reached
+            if (player.x > exit.x && 
+                player.x + player.w < exit.x + exit.w && 
+                player.y + player.h < exit.y + exit.h) {
+                win = true;
+            }
+
+            // Game messages
+            if (win) {
+                gameRunning = false;
+                ctx.fillStyle = "#2ecc71";
+                ctx.font = "35px 'Arial'";
+                ctx.textAlign = "center";
+                ctx.fillText("✅ Escaped Safely!", canvas.width / 2, canvas.height / 2);
+                ctx.textAlign = "left";
+                restartBtn.style.display = "inline-block";
+                return;
+            }
+
+            if (gameOver) {
+                gameRunning = false;
+                ctx.fillStyle = "#e74c3c";
+                ctx.font = "35px 'Arial'";
+                ctx.textAlign = "center";
+                ctx.fillText("🔥 Caught in Fire!", canvas.width / 2, canvas.height / 2);
+                ctx.textAlign = "left";
+                restartBtn.style.display = "inline-block";
+                return;
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Initialize
+        setupEventListeners();
+        document.addEventListener("DOMContentLoaded", initGame);
+        restartBtn.addEventListener("click", initGame);
+    </script>
+</body>
+</html>

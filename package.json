@@ -8,7 +8,10 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "check-profile": "node scripts/check-profile.js",
+    "list-profiles": "node scripts/list-profiles.js",
+    "clear-profiles": "node scripts/clear-profiles.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

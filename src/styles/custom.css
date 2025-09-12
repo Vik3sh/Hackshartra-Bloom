@@ -300,7 +300,7 @@
 
 /* 3D Navigation Bar Effects */
 .navbar-3d {
-  transform: perspective(1000px) rotateX(5deg);
+  transform: perspective(1000px);
   box-shadow: 
     0 25px 50px rgba(0, 0, 0, 0.15),
     0 15px 30px rgba(0, 0, 0, 0.1),
@@ -365,10 +365,10 @@
 /* Floating navigation animation */
 @keyframes navbar-float {
   0%, 100% { 
-    transform: perspective(1000px) rotateX(5deg) translateY(0px);
+    transform: perspective(1000px) translateY(0px);
   }
   50% { 
-    transform: perspective(1000px) rotateX(5deg) translateY(-2px);
+    transform: perspective(1000px) translateY(-2px);
   }
 }
 

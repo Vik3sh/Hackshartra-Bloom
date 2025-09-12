@@ -26,6 +26,8 @@ import { LessonModule as LessonModuleType, Lesson, canAccessLesson, updateModule
 import { MajorLevel, SubLevel, Game, Boss, canAccessMajorLevel, canAccessSubLevel, canAccessGame, canAccessBoss, updateLevelProgress, RPG_MAJOR_LEVELS } from '@/data/rpgLessons';
 import { LessonQuestModule, LessonQuest, LessonBoss, canAccessQuest, canAccessBoss as canAccessLessonBoss, updateQuestModuleProgress, LESSON_QUEST_MODULES, getQuestModuleByLessonId } from '@/data/lessonQuests';
 import { useProgress } from '@/contexts/ProgressContext';
+import { useLessonProgression } from '@/contexts/LessonProgressionContext';
+import { StoryModal } from '@/components/story/StoryModal';
 
 interface UnifiedLessonSystemProps {
   onStartLesson: (lesson: Lesson) => void;
@@ -67,20 +69,98 @@ const getBossTypeIcon = (type: string) => {
 };
 
 export default function UnifiedLessonSystem({ onStartLesson, onStartGame, onStartBoss, onStartQuest, onStartLessonBoss }: UnifiedLessonSystemProps) {
-  const { userProgress } = useProgress();
+  const { userProgress, addItems } = useProgress();
+  const { lessonProgress, completeLesson: completeLessonProgression, canAccessLesson: canAccessLessonProgression, getModuleProgress } = useLessonProgression();
   const [activeView, setActiveView] = useState<'traditional' | 'rpg'>('traditional');
   const [expandedModule, setExpandedModule] = useState<string | null>(null);
   const [expandedLevel, setExpandedLevel] = useState<string | null>(null);
   const [expandedSubLevel, setExpandedSubLevel] = useState<string | null>(null);
+  const [currentLevel, setCurrentLevel] = useState(1);
+  const [showNextLevel, setShowNextLevel] = useState(false);
+  const [showStoryModal, setShowStoryModal] = useState(false);
+
+
+  // Level switching functions
+  const nextLevel = () => {
+    setShowNextLevel(true);
+  };
+
+  const previousLevel = () => {
+    setShowNextLevel(false);
+  };
+
+  // Use all modules and RPG levels (keep everything as is)
+  const filteredModules = LESSON_MODULES;
+  const filteredRPGLevels = RPG_MAJOR_LEVELS;
 
   // Debug logging
   console.log('UnifiedLessonSystem - userProgress:', userProgress);
   console.log('UnifiedLessonSystem - LESSON_MODULES:', LESSON_MODULES);
 
   const handleStartLesson = (lesson: Lesson) => {
-    if (canAccessLesson(lesson.id, userProgress.completedLessons || [])) {
+    // Check if lesson is accessible using the new progression system
+    const moduleId = getModuleIdFromLesson(lesson.id);
+    if (canAccessLessonProgression(lesson.id, moduleId)) {
       onStartLesson(lesson);
     }
+  };
+
+  const handleCompleteLesson = (lesson: Lesson) => {
+    const moduleId = getModuleIdFromLesson(lesson.id);
+    
+    // Complete lesson in progression system
+    completeLessonProgression(lesson.id, moduleId);
+    
+    // Give rewards based on lesson type
+    const rewards = getLessonRewards(lesson.id, moduleId);
+    addItems(rewards);
+    
+    // Update progress context
+    completeLesson(lesson.id, 500, rewards);
+  };
+
+  const getModuleIdFromLesson = (lessonId: string): string => {
+    // Map lesson IDs to module IDs based on actual lesson data
+    if (lessonId.startsWith('climate-')) return 'climate-change';
+    if (lessonId.startsWith('waste-')) return 'waste-management';
+    if (lessonId.startsWith('energy-')) return 'renewable-energy';
+    if (lessonId.startsWith('conservation-')) return 'conservation';
+    return 'climate-change'; // default
+  };
+
+  const getLessonRewards = (lessonId: string, moduleId: string): { [itemId: string]: number } => {
+    // Different rewards based on lesson type and module
+    const baseRewards = {
+      water: 2,
+      sunlight: 2,
+      nutrients: 1,
+      fertilizer: 1
+    };
+
+    // Bonus rewards for advanced lessons
+    if (lessonId.includes('advanced')) {
+      return {
+        ...baseRewards,
+        water: 3,
+        sunlight: 3,
+        nutrients: 2,
+        fertilizer: 2,
+        love: 1
+      };
+    }
+
+    // Module-specific rewards
+    if (moduleId === 'climate-change') {
+      return { ...baseRewards, water: 3 };
+    } else if (moduleId === 'waste-management') {
+      return { ...baseRewards, nutrients: 2 };
+    } else if (moduleId === 'renewable-energy') {
+      return { ...baseRewards, sunlight: 3 };
+    } else if (moduleId === 'conservation') {
+      return { ...baseRewards, fertilizer: 2, love: 1 };
+    }
+
+    return baseRewards;
   };
 
   const handleStartGame = (game: Game) => {
@@ -110,11 +190,48 @@ export default function UnifiedLessonSystem({ onStartLesson, onStartGame, onStar
   try {
     return (
       <div className="space-y-6">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-blue-900 mb-2">📚 Environmental Learning Hub</h2>
-          <p className="text-blue-600 text-lg">Choose your learning style: Traditional lessons or RPG quests!</p>
+      {/* Level Navigation */}
+      <div className={`bg-gradient-to-r ${
+        showNextLevel ? 'from-green-600 to-teal-600' : 'from-blue-600 to-green-600'
+      } text-white p-4 rounded-lg mb-6`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="text-4xl">{showNextLevel ? '♻️' : '🌍'}</div>
+            <div>
+              <h2 className="text-2xl font-bold">
+                {showNextLevel ? 'Waste Management Revolution' : 'Climate Change Crisis'}
+              </h2>
+              <p className="text-white/90">
+                {showNextLevel 
+                  ? 'Learn sustainable waste practices and circular economy principles' 
+                  : 'Master the fundamentals of climate science and understand global warming'
+                }
+              </p>
+              <div className="text-sm text-white/80 mt-1">
+                {showNextLevel ? 'Level 2 of 5' : 'Level 1 of 5'}
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              onClick={previousLevel}
+              disabled={!showNextLevel}
+              className="bg-white/20 border-white/30 text-white hover:bg-white/30 disabled:opacity-50"
+            >
+              ← Previous
+            </Button>
+            <Button
+              variant="outline"
+              onClick={nextLevel}
+              disabled={showNextLevel}
+              className="bg-white/20 border-white/30 text-white hover:bg-white/30 disabled:opacity-50"
+            >
+              Next Level →
+            </Button>
+          </div>
         </div>
+      </div>
 
       {/* View Toggle */}
       <div className="flex justify-center mb-8">
@@ -149,7 +266,67 @@ export default function UnifiedLessonSystem({ onStartLesson, onStartGame, onStar
       {/* Traditional Lessons View */}
       {activeView === 'traditional' && (
         <div className="space-y-6">
-            {LESSON_MODULES.map((module) => {
+          {/* Level Information */}
+          <Card className={`bg-gradient-to-r ${
+            showNextLevel ? 'from-green-50 to-teal-50 border-green-200' : 'from-blue-50 to-green-50 border-blue-200'
+          }`}>
+            <CardContent className="p-6">
+              <div className="text-center">
+                <h3 className={`text-xl font-bold mb-3 ${
+                  showNextLevel ? 'text-green-800' : 'text-blue-800'
+                }`}>
+                  🎯 {showNextLevel ? 'Level 2: Waste Management Revolution' : 'Level 1: Climate Change Crisis'}
+                </h3>
+                <p className={`mb-4 ${
+                  showNextLevel ? 'text-green-700' : 'text-blue-700'
+                }`}>
+                  {showNextLevel 
+                    ? "Punjab generates massive amounts of waste daily. It's time to revolutionize how we handle our resources! From plastic pollution in our rivers to organic waste in our fields, Punjab needs innovative waste management solutions."
+                    : "Master the essential concepts of climate science, greenhouse gases, and their impact on Punjab's environment. Complete all lessons to unlock the next level!"
+                  }
+                </p>
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div className="bg-white/50 rounded-lg p-3">
+                    <div className={`text-2xl font-bold ${
+                      showNextLevel ? 'text-green-600' : 'text-blue-600'
+                    }`}>
+                      {filteredModules.reduce((total, module) => total + module.lessons.length, 0)}
+                    </div>
+                    <div className={`text-sm ${
+                      showNextLevel ? 'text-green-700' : 'text-blue-700'
+                    }`}>
+                      Lessons
+                    </div>
+                  </div>
+                  <div className="bg-white/50 rounded-lg p-3">
+                    <div className={`text-2xl font-bold ${
+                      showNextLevel ? 'text-green-600' : 'text-blue-600'
+                    }`}>
+                      {filteredModules.reduce((total, module) => total + module.lessons.reduce((sum, lesson) => sum + lesson.points, 0), 0)}
+                    </div>
+                    <div className={`text-sm ${
+                      showNextLevel ? 'text-green-700' : 'text-blue-700'
+                    }`}>
+                      Total Points
+                    </div>
+                  </div>
+                  <div className="bg-white/50 rounded-lg p-3">
+                    <div className={`text-2xl font-bold ${
+                      showNextLevel ? 'text-green-600' : 'text-blue-600'
+                    }`}>
+                      {Math.ceil(filteredModules.reduce((total, module) => total + module.lessons.reduce((sum, lesson) => sum + lesson.duration, 0), 0) / 60)}
+                    </div>
+                    <div className={`text-sm ${
+                      showNextLevel ? 'text-green-700' : 'text-blue-700'
+                    }`}>
+                      Hours
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+            {filteredModules.map((module) => {
               const updatedModule = updateModuleProgress(module.id, userProgress.completedLessons || []);
               const isExpanded = expandedModule === module.id;
 
@@ -198,8 +375,9 @@ export default function UnifiedLessonSystem({ onStartLesson, onStartGame, onStar
                     <CardContent className="pt-0">
                       <div className="space-y-4">
                         {module.lessons.map((lesson, index) => {
-                          const isCompleted = userProgress.completedLessons?.includes(lesson.id) || false;
-                          const canAccess = canAccessLesson(lesson.id, userProgress.completedLessons || []);
+                          const moduleId = getModuleIdFromLesson(lesson.id);
+                          const isCompleted = lessonProgress.completedLessons?.includes(lesson.id) || false;
+                          const canAccess = canAccessLessonProgression(lesson.id, moduleId);
                           const isLocked = !canAccess && !isCompleted;
                           
                           // Get connected quest module for this lesson
@@ -275,120 +453,52 @@ export default function UnifiedLessonSystem({ onStartLesson, onStartGame, onStar
                                       </div>
                                     </div>
 
-                                    <Button
-                                      size="sm"
-                                      onClick={() => handleStartLesson(lesson)}
-                                      disabled={isLocked || isCompleted}
-                                      className={
-                                        isCompleted 
-                                          ? 'bg-green-100 text-green-800 cursor-not-allowed' 
-                                          : isLocked 
-                                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                                            : 'bg-blue-600 hover:bg-blue-700'
-                                      }
-                                    >
-                                      {isCompleted ? (
-                                        <>
+                                    <div className="flex space-x-2">
+                                      <Button
+                                        size="sm"
+                                        onClick={() => handleStartLesson(lesson)}
+                                        disabled={isLocked || isCompleted}
+                                        className={
+                                          isCompleted 
+                                            ? 'bg-green-100 text-green-800 cursor-not-allowed' 
+                                            : isLocked 
+                                              ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                                              : 'bg-blue-600 hover:bg-blue-700'
+                                        }
+                                      >
+                                        {isCompleted ? (
+                                          <>
+                                            <CheckCircle className="w-4 h-4 mr-1" />
+                                            Completed
+                                          </>
+                                        ) : isLocked ? (
+                                          <>
+                                            <Lock className="w-4 h-4 mr-1" />
+                                            Locked
+                                          </>
+                                        ) : (
+                                          <>
+                                            <Play className="w-4 h-4 mr-1" />
+                                            Start
+                                          </>
+                                        )}
+                                      </Button>
+                                      
+                                      {!isLocked && !isCompleted && (
+                                        <Button
+                                          size="sm"
+                                          onClick={() => handleCompleteLesson(lesson)}
+                                          className="bg-green-600 hover:bg-green-700"
+                                        >
                                           <CheckCircle className="w-4 h-4 mr-1" />
-                                          Completed
-                                        </>
-                                      ) : isLocked ? (
-                                        <>
-                                          <Lock className="w-4 h-4 mr-1" />
-                                          Locked
-                                        </>
-                                      ) : (
-                                        <>
-                                          <Play className="w-4 h-4 mr-1" />
-                                          Start
-                                        </>
+                                          Complete
+                                        </Button>
                                       )}
-                                    </Button>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
 
-                              {/* Connected Quests */}
-                              {hasQuests && isCompleted && (
-                                <div className="ml-4 pl-4 border-l-2 border-purple-200">
-                                  <div className="bg-purple-50 rounded-lg p-3">
-                                    <div className="flex items-center gap-2 mb-3">
-                                      <Crown className="w-4 h-4 text-purple-600" />
-                                      <h5 className="font-semibold text-purple-900">Connected Quests</h5>
-                                      <Badge className="bg-purple-100 text-purple-800">
-                                        {questModule?.completedQuests || 0}/{questModule?.totalQuests || 0}
-                                      </Badge>
-                                    </div>
-                                    
-                                    <div className="space-y-2">
-                                      {questModule?.quests.map((quest) => {
-                                        const isQuestCompleted = userProgress.completedGames?.includes(quest.id) || false;
-                                        const canAccessQuest = canAccessQuest(quest.id, userProgress.completedLessons || [], userProgress.completedGames || []);
-
-                                        return (
-                                          <div
-                                            key={quest.id}
-                                            className={`p-2 rounded border ${
-                                              isQuestCompleted 
-                                                ? 'bg-green-100 border-green-300' 
-                                                : canAccessQuest 
-                                                  ? 'bg-purple-100 border-purple-300 hover:bg-purple-200' 
-                                                  : 'bg-gray-100 border-gray-300'
-                                            }`}
-                                          >
-                                            <div className="flex items-center justify-between">
-                                              <div className="flex items-center space-x-2">
-                                                {getGameTypeIcon(quest.type)}
-                                                <span className="text-sm font-medium">{quest.title}</span>
-                                                <Badge className={getDifficultyColor(quest.difficulty)}>
-                                                  {quest.difficulty}
-                                                </Badge>
-                                              </div>
-                                              <Button
-                                                size="sm"
-                                                onClick={() => handleStartQuest(quest)}
-                                                disabled={!canAccessQuest || isQuestCompleted}
-                                                className={`text-xs ${
-                                                  isQuestCompleted 
-                                                    ? 'bg-green-100 text-green-800 cursor-not-allowed' 
-                                                    : canAccessQuest 
-                                                      ? 'bg-purple-600 hover:bg-purple-700' 
-                                                      : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                                }`}
-                                              >
-                                                {isQuestCompleted ? 'Completed' : canAccessQuest ? 'Play' : 'Locked'}
-                                              </Button>
-                                            </div>
-                                          </div>
-                                        );
-                                      })}
-                                      
-                                      {/* Boss Battle */}
-                                      {questModule?.boss && (
-                                        <div className="mt-3 pt-2 border-t border-purple-200">
-                                          <div className="flex items-center justify-between">
-                                            <div className="flex items-center space-x-2">
-                                              <Crown className="w-4 h-4 text-purple-600" />
-                                              <span className="text-sm font-medium">{questModule.boss.title}</span>
-                                              <Badge className={getDifficultyColor(questModule.boss.difficulty)}>
-                                                {questModule.boss.difficulty}
-                                              </Badge>
-                                            </div>
-                                            <Button
-                                              size="sm"
-                                              onClick={() => handleStartLessonBoss(questModule.boss)}
-                                              disabled={!canAccessLessonBoss(questModule.boss.id, userProgress.completedLessons || [], userProgress.completedGames || [])}
-                                              className="text-xs bg-purple-600 hover:bg-purple-700"
-                                            >
-                                              Challenge Boss
-                                            </Button>
-                                          </div>
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
                             </div>
                           );
                         })}
@@ -404,7 +514,58 @@ export default function UnifiedLessonSystem({ onStartLesson, onStartGame, onStar
       {/* RPG Quests View */}
       {activeView === 'rpg' && (
         <div className="space-y-6">
-            {RPG_MAJOR_LEVELS.map((level) => {
+          {/* Story Section */}
+          <Card className={`bg-gradient-to-r ${
+            showNextLevel ? 'from-green-50 to-teal-50 border-green-200' : 'from-blue-50 to-green-50 border-blue-200'
+          }`}>
+            <CardContent className="p-6">
+              <div className="text-center">
+                <h3 className={`text-xl font-bold mb-3 ${
+                  showNextLevel ? 'text-green-800' : 'text-blue-800'
+                }`}>
+                  📖 Quest Story
+                </h3>
+                <p className={`mb-4 ${
+                  showNextLevel ? 'text-green-700' : 'text-blue-700'
+                }`}>
+                  {showNextLevel 
+                    ? "Punjab generates massive amounts of waste daily. It's time to revolutionize how we handle our resources! From plastic pollution in our rivers to organic waste in our fields, Punjab needs innovative waste management solutions."
+                    : "Welcome to the Climate Change realm! Punjab's environment is under threat from rising temperatures, changing weather patterns, and extreme events. As an environmental hero, you must master the fundamentals of climate science to protect our beautiful state."
+                  }
+                </p>
+                <div className="bg-white/50 rounded-lg p-4 mb-4">
+                  <p className={`text-sm italic ${
+                    showNextLevel ? 'text-green-600' : 'text-blue-600'
+                  }`}>
+                    {showNextLevel 
+                      ? "Master waste sorting, composting techniques, and circular economy principles. Help Punjab become a zero-waste state through your heroic actions!"
+                      : "In this realm, you'll face climate challenges that test your knowledge and skills. Each quest brings you closer to becoming a true environmental champion for Punjab!"
+                    }
+                  </p>
+                </div>
+                <div className="flex justify-center space-x-4">
+                  <Button 
+                    onClick={() => setShowStoryModal(true)}
+                    className={`${
+                      showNextLevel ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'
+                    }`}
+                  >
+                    Begin Adventure
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowStoryModal(true)}
+                    className={`${
+                      showNextLevel ? 'border-green-300 text-green-700' : 'border-blue-300 text-blue-700'
+                    }`}
+                  >
+                    View Story Details
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+            {filteredRPGLevels.map((level) => {
               const updatedLevel = updateLevelProgress(level.id, userProgress.completedGames || []);
               const canAccess = canAccessMajorLevel(level.id, userProgress.completedMajorLevels || []);
               const isExpanded = expandedLevel === level.id;
@@ -513,7 +674,7 @@ export default function UnifiedLessonSystem({ onStartLesson, onStartGame, onStar
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     {subLevel.games.map((game) => {
                                       const isGameCompleted = userProgress.completedGames?.includes(game.id) || false;
-                                      const canAccessGame = canAccessGame(game.id, userProgress.completedGames || []);
+                                      const canAccessThisGame = canAccessGame(game.id, userProgress.completedGames || []);
 
                                       return (
                                         <div
@@ -521,7 +682,7 @@ export default function UnifiedLessonSystem({ onStartLesson, onStartGame, onStar
                                           className={`p-3 rounded-lg border transition-all ${
                                             isGameCompleted 
                                               ? 'bg-green-100 border-green-300' 
-                                              : canAccessGame 
+                                              : canAccessThisGame 
                                                 ? 'bg-blue-50 border-blue-200 hover:bg-blue-100' 
                                                 : 'bg-gray-50 border-gray-200 opacity-60'
                                           }`}
@@ -551,11 +712,11 @@ export default function UnifiedLessonSystem({ onStartLesson, onStartGame, onStar
                                           <Button
                                             size="sm"
                                             onClick={() => handleStartGame(game)}
-                                            disabled={!canAccessGame || isGameCompleted}
+                                            disabled={!canAccessThisGame || isGameCompleted}
                                             className={`w-full ${
                                               isGameCompleted 
                                                 ? 'bg-green-100 text-green-800 cursor-not-allowed' 
-                                                : canAccessGame 
+                                                : canAccessThisGame 
                                                   ? 'bg-blue-600 hover:bg-blue-700' 
                                                   : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                                             }`}
@@ -565,7 +726,7 @@ export default function UnifiedLessonSystem({ onStartLesson, onStartGame, onStar
                                                 <CheckCircle className="w-3 h-3 mr-1" />
                                                 Completed
                                               </>
-                                            ) : canAccessGame ? (
+                                            ) : canAccessThisGame ? (
                                               <>
                                                 <Play className="w-3 h-3 mr-1" />
                                                 Play
@@ -655,16 +816,23 @@ export default function UnifiedLessonSystem({ onStartLesson, onStartGame, onStar
             })}
         </div>
       )}
-      </div>
-    );
-  } catch (error) {
-    console.error('Error in UnifiedLessonSystem:', error);
-    return (
-      <div className="text-center py-12">
-        <h3 className="text-xl font-semibold text-red-900 mb-2">Error Loading Lessons</h3>
-        <p className="text-red-600">There was an error loading the lesson system. Please try refreshing the page.</p>
-        <p className="text-sm text-gray-500 mt-2">Error: {error instanceof Error ? error.message : 'Unknown error'}</p>
-      </div>
-    );
-  }
+
+      {/* Story Modal */}
+      <StoryModal
+        isOpen={showStoryModal}
+        onClose={() => setShowStoryModal(false)}
+        level={showNextLevel ? 2 : 1}
+      />
+    </div>
+  );
+} catch (error) {
+  console.error('Error in UnifiedLessonSystem:', error);
+  return (
+    <div className="text-center py-12">
+      <h3 className="text-xl font-semibold text-red-900 mb-2">Error Loading Lessons</h3>
+      <p className="text-red-600">There was an error loading the lesson system. Please try refreshing the page.</p>
+      <p className="text-sm text-gray-500 mt-2">Error: {error instanceof Error ? error.message : 'Unknown error'}</p>
+    </div>
+  );
+}
 }

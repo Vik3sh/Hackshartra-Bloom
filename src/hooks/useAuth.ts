@@ -29,7 +29,7 @@ export const useAuth = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, userData: { fullName: string, role: string }) => {
+  const signUp = async (email: string, password: string, userData: { fullName: string, pokemonAvatar?: string }) => {
     const redirectUrl = `${window.location.origin}/`;
     
     console.log('Signing up with userData:', userData);
@@ -41,7 +41,7 @@ export const useAuth = () => {
         emailRedirectTo: redirectUrl,
         data: {
           full_name: userData.fullName,
-          role: userData.role
+          pokemon_avatar: userData.pokemonAvatar
         }
       }
     });

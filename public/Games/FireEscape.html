@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wildfire Prevention Challenge</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #87CEEB 0%, #98FB98 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-header {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #2d5016;
+        }
+
+        .game-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .stats-panel {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 20px;
+            background: rgba(255,255,255,0.9);
+            padding: 15px 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .stat {
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            color: #2d5016;
+        }
+
+        .game-container {
+            display: flex;
+            gap: 20px;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .tools-panel {
+            background: rgba(255,255,255,0.95);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            width: 200px;
+            height: fit-content;
+        }
+
+        .tool {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f0f8ff;
+            border: 2px solid #4682b4;
+            border-radius: 10px;
+            cursor: grab;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+
+        .tool:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .tool.selected {
+            background: #87ceeb;
+            border-color: #2d5016;
+        }
+
+        .tool-icon {
+            font-size: 1.5rem;
+        }
+
+        .forest-grid {
+            display: grid;
+            grid-template-columns: repeat(15, 40px);
+            grid-template-rows: repeat(12, 40px);
+            gap: 2px;
+            background: rgba(255,255,255,0.9);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .cell {
+            width: 40px;
+            height: 40px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .cell.tree {
+            background: #228B22;
+            color: white;
+        }
+
+        .cell.fire {
+            background: #FF4500;
+            animation: flicker 0.5s infinite alternate;
+        }
+
+        .cell.firebreak {
+            background: #8B4513;
+        }
+
+        .cell.water {
+            background: #4169E1;
+            animation: ripple 1s infinite;
+        }
+
+        .cell.burned {
+            background: #2F4F4F;
+        }
+
+        @keyframes flicker {
+            0% { background: #FF4500; }
+            100% { background: #FF6347; }
+        }
+
+        @keyframes ripple {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .controls {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .btn {
+            background: #4682b4;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #2d5016;
+            transform: translateY(-2px);
+        }
+
+        .info-panel {
+            background: rgba(255,255,255,0.95);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            width: 250px;
+            height: fit-content;
+        }
+
+        .info-panel h3 {
+            color: #2d5016;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .info-panel p {
+            margin-bottom: 10px;
+            line-height: 1.4;
+            font-size: 0.9rem;
+        }
+
+        .game-over {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .game-over-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 400px;
+        }
+
+        .success {
+            color: #228B22;
+        }
+
+        .failure {
+            color: #FF4500;
+        }
+
+        @media (max-width: 768px) {
+            .game-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .forest-grid {
+                grid-template-columns: repeat(12, 35px);
+                grid-template-rows: repeat(10, 35px);
+            }
+            
+            .cell {
+                width: 35px;
+                height: 35px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-header">
+        <h1>🔥 Wildfire Prevention Challenge 🌲</h1>
+        <p>Protect the forest by creating firebreaks and using water strategically!</p>
+    </div>
+
+    <div class="stats-panel">
+        <div class="stat">
+            <div>Water Bombs</div>
+            <div class="stat-value" id="waterCount">8</div>
+        </div>
+        <div class="stat">
+            <div>Firebreaks</div>
+            <div class="stat-value" id="firebreakCount">12</div>
+        </div>
+        <div class="stat">
+            <div>Trees Saved</div>
+            <div class="stat-value" id="treesSaved">0</div>
+        </div>
+        <div class="stat">
+            <div>Fire Spread</div>
+            <div class="stat-value" id="fireSpread">0%</div>
+        </div>
+    </div>
+
+    <div class="game-container">
+        <div class="tools-panel">
+            <h3 style="text-align: center; margin-bottom: 15px; color: #2d5016;">Prevention Tools</h3>
+            <div class="tool" data-tool="water">
+                <span class="tool-icon">💧</span>
+                <span>Water Bomb</span>
+            </div>
+            <div class="tool" data-tool="firebreak">
+                <span class="tool-icon">🟫</span>
+                <span>Firebreak</span>
+            </div>
+            <div class="tool" data-tool="remove">
+                <span class="tool-icon">❌</span>
+                <span>Remove</span>
+            </div>
+        </div>
+
+        <div class="forest-grid" id="forestGrid"></div>
+
+        <div class="info-panel">
+            <h3>🎯 Mission Briefing</h3>
+            <p><strong>Objective:</strong> Prevent fire from spreading to more than 40% of the forest.</p>
+            
+            <h4 style="color: #2d5016; margin: 15px 0 10px 0;">🔥 Fire Behavior:</h4>
+            <p>• Fire spreads to adjacent trees every 3 seconds</p>
+            <p>• Wind can cause diagonal spread</p>
+            <p>• Dry conditions increase spread rate</p>
+            
+            <h4 style="color: #2d5016; margin: 15px 0 10px 0;">🛡 Prevention Tools:</h4>
+            <p><strong>💧 Water Bombs:</strong> Extinguish fires and protect nearby trees</p>
+            <p><strong>🟫 Firebreaks:</strong> Create barriers that fire cannot cross</p>
+            
+            <h4 style="color: #2d5016; margin: 15px 0 10px 0;">💡 Strategy Tips:</h4>
+            <p>• Create firebreaks around fire sources</p>
+            <p>• Use water bombs on active fires</p>
+            <p>• Plan ahead - resources are limited!</p>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn" onclick="startFire()">🔥 Start Fire</button>
+        <button class="btn" onclick="resetGame()">🔄 Reset Game</button>
+        <button class="btn" onclick="togglePause()">⏸ Pause</button>
+    </div>
+
+    <div class="game-over" id="gameOver">
+        <div class="game-over-content">
+            <h2 id="gameOverTitle"></h2>
+            <p id="gameOverMessage"></p>
+            <button class="btn" onclick="resetGame()">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        class WildfireGame {
+            constructor() {
+                this.gridSize = { width: 15, height: 12 };
+                this.grid = [];
+                this.selectedTool = null;
+                this.resources = { water: 8, firebreak: 12 };
+                this.gameState = 'setup'; // setup, running, paused, ended
+                this.fireSpreadInterval = null;
+                this.totalTrees = 0;
+                this.burnedTrees = 0;
+                this.firePositions = new Set();
+                
+                this.initializeGrid();
+                this.setupEventListeners();
+                this.updateStats();
+            }
+
+            initializeGrid() {
+                const gridElement = document.getElementById('forestGrid');
+                gridElement.innerHTML = '';
+                this.grid = [];
+                this.firePositions.clear();
+                this.totalTrees = 0;
+                this.burnedTrees = 0;
+
+                // Create grid with trees and some empty spaces
+                for (let row = 0; row < this.gridSize.height; row++) {
+                    this.grid[row] = [];
+                    for (let col = 0; col < this.gridSize.width; col++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'cell';
+                        cell.dataset.row = row;
+                        cell.dataset.col = col;
+                        
+                        // 75% chance of tree, 25% empty space
+                        const cellType = Math.random() < 0.75 ? 'tree' : 'empty';
+                        
+                        if (cellType === 'tree') {
+                            cell.classList.add('tree');
+                            cell.textContent = '🌲';
+                            this.totalTrees++;
+                        }
+                        
+                        this.grid[row][col] = {
+                            element: cell,
+                            type: cellType,
+                            row: row,
+                            col: col
+                        };
+                        
+                        gridElement.appendChild(cell);
+                    }
+                }
+            }
+
+            setupEventListeners() {
+                // Tool selection
+                document.querySelectorAll('.tool').forEach(tool => {
+                    tool.addEventListener('click', (e) => {
+                        document.querySelectorAll('.tool').forEach(t => t.classList.remove('selected'));
+                        tool.classList.add('selected');
+                        this.selectedTool = tool.dataset.tool;
+                    });
+                });
+
+                // Grid interaction
+                document.getElementById('forestGrid').addEventListener('click', (e) => {
+                    if (e.target.classList.contains('cell')) {
+                        this.handleCellClick(e.target);
+                    }
+                });
+            }
+
+            handleCellClick(cellElement) {
+                const row = parseInt(cellElement.dataset.row);
+                const col = parseInt(cellElement.dataset.col);
+                const cell = this.grid[row][col];
+
+                if (!this.selectedTool) return;
+
+                switch (this.selectedTool) {
+                    case 'water':
+                        this.placeWater(cell);
+                        break;
+                    case 'firebreak':
+                        this.placeFirebreak(cell);
+                        break;
+                    case 'remove':
+                        this.removePreventionTool(cell);
+                        break;
+                }
+            }
+
+            placeWater(cell) {
+                if (this.resources.water <= 0) {
+                    alert('No water bombs left! Use them strategically.');
+                    return;
+                }
+
+                if (cell.type === 'fire') {
+                    // Extinguish fire
+                    cell.element.classList.remove('fire');
+                    cell.element.classList.add('water');
+                    cell.element.textContent = '💧';
+                    cell.type = 'water';
+                    this.firePositions.delete(${cell.row},${cell.col});
+                    this.resources.water--;
+                    
+                    // Water also protects adjacent cells
+                    this.protectAdjacentCells(cell.row, cell.col);
+                } else if (cell.type === 'tree' || cell.type === 'empty') {
+                    // Preventive water placement
+                    cell.element.classList.remove('tree');
+                    cell.element.classList.add('water');
+                    cell.element.textContent = '💧';
+                    cell.type = 'water';
+                    this.resources.water--;
+                }
+
+                this.updateStats();
+            }
+
+            placeFirebreak(cell) {
+                if (this.resources.firebreak <= 0) {
+                    alert('No firebreaks left! Plan your barriers carefully.');
+                    return;
+                }
+
+                if (cell.type === 'tree' || cell.type === 'empty') {
+                    cell.element.classList.remove('tree');
+                    cell.element.classList.add('firebreak');
+                    cell.element.textContent = '🟫';
+                    cell.type = 'firebreak';
+                    this.resources.firebreak--;
+                    this.updateStats();
+                }
+            }
+
+            removePreventionTool(cell) {
+                if (cell.type === 'water' || cell.type === 'firebreak') {
+                    const resourceType = cell.type === 'water' ? 'water' : 'firebreak';
+                    this.resources[resourceType]++;
+                    
+                    cell.element.classList.remove('water', 'firebreak');
+                    cell.element.textContent = '';
+                    cell.type = 'empty';
+                    this.updateStats();
+                }
+            }
+
+            protectAdjacentCells(row, col) {
+                const directions = [[-1,0], [1,0], [0,-1], [0,1]];
+                
+                directions.forEach(([dr, dc]) => {
+                    const newRow = row + dr;
+                    const newCol = col + dc;
+                    
+                    if (this.isValidPosition(newRow, newCol)) {
+                        const adjacentCell = this.grid[newRow][newCol];
+                        if (adjacentCell.type === 'fire') {
+                            adjacentCell.element.classList.remove('fire');
+                            adjacentCell.element.classList.add('water');
+                            adjacentCell.element.textContent = '💧';
+                            adjacentCell.type = 'water';
+                            this.firePositions.delete(${newRow},${newCol});
+                        }
+                    }
+                });
+            }
+
+            startFire() {
+                if (this.gameState === 'running') return;
+                
+                // Start fires at random tree locations
+                const fireStarts = Math.floor(Math.random() * 3) + 2; // 2-4 fire starts
+                let firesPlaced = 0;
+                
+                while (firesPlaced < fireStarts) {
+                    const row = Math.floor(Math.random() * this.gridSize.height);
+                    const col = Math.floor(Math.random() * this.gridSize.width);
+                    const cell = this.grid[row][col];
+                    
+                    if (cell.type === 'tree') {
+                        cell.element.classList.remove('tree');
+                        cell.element.classList.add('fire');
+                        cell.element.textContent = '🔥';
+                        cell.type = 'fire';
+                        this.firePositions.add(${row},${col});
+                        firesPlaced++;
+                    }
+                }
+                
+                this.gameState = 'running';
+                this.startFireSpread();
+            }
+
+            startFireSpread() {
+                this.fireSpreadInterval = setInterval(() => {
+                    if (this.gameState === 'running') {
+                        this.spreadFire();
+                        this.checkGameEnd();
+                    }
+                }, 3000);
+            }
+
+            spreadFire() {
+                const newFires = [];
+                
+                this.firePositions.forEach(posStr => {
+                    const [row, col] = posStr.split(',').map(Number);
+                    const directions = [
+                        [-1,0], [1,0], [0,-1], [0,1], // Adjacent
+                        [-1,-1], [-1,1], [1,-1], [1,1] // Diagonal (wind effect)
+                    ];
+                    
+                    directions.forEach(([dr, dc]) => {
+                        const newRow = row + dr;
+                        const newCol = col + dc;
+                        
+                        if (this.isValidPosition(newRow, newCol)) {
+                            const cell = this.grid[newRow][newCol];
+                            
+                            // Fire spreads to trees, reduced chance for diagonal
+                            const spreadChance = (Math.abs(dr) + Math.abs(dc) === 1) ? 0.5 : 0.2;
+                            
+                            if (cell.type === 'tree' && Math.random() < spreadChance) {
+                                newFires.push({row: newRow, col: newCol, cell: cell});
+                            }
+                        }
+                    });
+                });
+                
+                // Apply new fires
+                newFires.forEach(({row, col, cell}) => {
+                    cell.element.classList.remove('tree');
+                    cell.element.classList.add('fire');
+                    cell.element.textContent = '🔥';
+                    cell.type = 'fire';
+                    this.firePositions.add(${row},${col});
+                    this.burnedTrees++;
+                });
+                
+                this.updateStats();
+            }
+
+            isValidPosition(row, col) {
+                return row >= 0 && row < this.gridSize.height && 
+                       col >= 0 && col < this.gridSize.width;
+            }
+
+            checkGameEnd() {
+                const fireSpreadPercentage = (this.burnedTrees / this.totalTrees) * 100;
+                
+                if (fireSpreadPercentage >= 40) {
+                    this.endGame(false, Fire spread to ${fireSpreadPercentage.toFixed(1)}% of the forest!);
+                } else if (this.firePositions.size === 0 && this.burnedTrees > 0) {
+                    this.endGame(true, Excellent work! You contained the fire at ${fireSpreadPercentage.toFixed(1)}% spread.);
+                }
+            }
+
+            endGame(success, message) {
+                this.gameState = 'ended';
+                clearInterval(this.fireSpreadInterval);
+                
+                const gameOverElement = document.getElementById('gameOver');
+                const titleElement = document.getElementById('gameOverTitle');
+                const messageElement = document.getElementById('gameOverMessage');
+                
+                if (success) {
+                    titleElement.textContent = '🎉 Mission Successful!';
+                    titleElement.className = 'success';
+                    messageElement.textContent = message + ' You successfully prevented a major wildfire disaster!';
+                } else {
+                    titleElement.textContent = '🔥 Mission Failed';
+                    titleElement.className = 'failure';
+                    messageElement.textContent = message + ' The fire spread too far. Try creating more strategic firebreaks next time!';
+                }
+                
+                gameOverElement.style.display = 'flex';
+            }
+
+            updateStats() {
+                document.getElementById('waterCount').textContent = this.resources.water;
+                document.getElementById('firebreakCount').textContent = this.resources.firebreak;
+                document.getElementById('treesSaved').textContent = this.totalTrees - this.burnedTrees;
+                
+                const fireSpreadPercentage = this.totalTrees > 0 ? 
+                    ((this.burnedTrees / this.totalTrees) * 100).toFixed(1) : 0;
+                document.getElementById('fireSpread').textContent = fireSpreadPercentage + '%';
+            }
+
+            resetGame() {
+                this.gameState = 'setup';
+                clearInterval(this.fireSpreadInterval);
+                this.resources = { water: 8, firebreak: 12 };
+                this.burnedTrees = 0;
+                document.getElementById('gameOver').style.display = 'none';
+                this.initializeGrid();
+                this.updateStats();
+            }
+
+            togglePause() {
+                if (this.gameState === 'running') {
+                    this.gameState = 'paused';
+                    clearInterval(this.fireSpreadInterval);
+                    document.querySelector('button[onclick="togglePause()"]').textContent = '▶ Resume';
+                } else if (this.gameState === 'paused') {
+                    this.gameState = 'running';
+                    this.startFireSpread();
+                    document.querySelector('button[onclick="togglePause()"]').textContent = '⏸ Pause';
+                }
+            }
+        }
+
+        // Initialize game
+        let game;
+
+        function initGame() {
+            game = new WildfireGame();
+        }
+
+        function startFire() {
+            game.startFire();
+        }
+
+        function resetGame() {
+            game.resetGame();
+        }
+
+        function togglePause() {
+            game.togglePause();
+        }
+
+        // Start the game when page loads
+        window.addEventListener('load', initGame);
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97e178b422b75507',t:'MTc1NzcwMTc3OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

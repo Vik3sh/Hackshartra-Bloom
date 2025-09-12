@@ -1,0 +1,340 @@
+the <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title> Flood Escape - Enhanced</title>
+  <style>
+    body {
+      margin: 0;
+      background: #2c3e50;
+      font-family: Arial, sans-serif;
+      color: white;
+      text-align: center;
+      overflow: hidden;
+    }
+    canvas {
+      background: linear-gradient(to top, #3498db, #2980b9);
+      display: block;
+      margin: auto;
+      border: 3px solid white;
+      border-radius: 10px;
+      margin-top: 10px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    }
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+      background: #27ae60;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    button:hover {
+      background: #2ecc71;
+      transform: scale(1.05);
+    }
+    .instructions {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(0,0,0,0.7);
+      padding: 10px;
+      border-radius: 5px;
+      font-size: 0.9em;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <h1>🌊 Flood Escape</h1>
+  <p>Use ⬅️ ➡️ to move, ⬆️ to jump — Escape before the water rises!</p>
+  <div class="instructions">
+    <div>🏃 Move with arrow keys</div>
+    <div>⬆️ Jump to higher platforms</div>
+    <div>🌊 Avoid rising water</div>
+  </div>
+  <canvas id="gameCanvas" width="400" height="500"></canvas>
+  <button id="restartBtn" style="display:none;">🔄 Restart</button>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const restartBtn = document.getElementById("restartBtn");
+
+    let player, platforms, waterLevel, keys, gameOver, win, score, gameRunning;
+
+    function initGame() {
+      player = { 
+        x: 50, 
+        y: 400, 
+        w: 30, 
+        h: 30, 
+        emoji: "🏃",
+        speed: 1.5,
+        jumpPower: 10,
+        velocityX: 0,
+        velocityY: 0,
+        onGround: false,
+        friction: 0.8,
+        acceleration: 0.25
+      };
+      
+      platforms = [
+        { x: 0, y: 450, w: 100, h: 20 },
+        { x: 120, y: 400, w: 80, h: 20 },
+        { x: 220, y: 350, w: 80, h: 20 },
+        { x: 320, y: 300, w: 80, h: 20 },
+        { x: 50, y: 250, w: 100, h: 20 },
+        { x: 200, y: 200, w: 100, h: 20 },
+        { x: 0, y: 150, w: 120, h: 20 },
+        { x: 280, y: 100, w: 120, h: 20 }
+      ];
+      
+      waterLevel = 480;
+      keys = {};
+      gameOver = false;
+      win = false;
+      score = 0;
+      gameRunning = true;
+      restartBtn.style.display = "none";
+
+      setupEventListeners();
+      gameLoop();
+    }
+
+    // Smooth movement with key states
+    function setupEventListeners() {
+      keys = {
+        up: false,
+        down: false,
+        left: false,
+        right: false
+      };
+
+      const handleKeyDown = (e) => {
+        if (!gameRunning) return;
+        
+        switch(e.key) {
+          case 'ArrowUp':
+            e.preventDefault();
+            if (player.onGround) {
+              player.velocityY = -player.jumpPower;
+              player.onGround = false;
+            }
+            break;
+          case 'ArrowDown':
+            e.preventDefault();
+            keys.down = true;
+            break;
+          case 'ArrowLeft':
+            e.preventDefault();
+            keys.left = true;
+            break;
+          case 'ArrowRight':
+            e.preventDefault();
+            keys.right = true;
+            break;
+        }
+      };
+
+      const handleKeyUp = (e) => {
+        if (!gameRunning) return;
+        
+        switch(e.key) {
+          case 'ArrowDown':
+            e.preventDefault();
+            keys.down = false;
+            break;
+          case 'ArrowLeft':
+            e.preventDefault();
+            keys.left = false;
+            break;
+          case 'ArrowRight':
+            e.preventDefault();
+            keys.right = false;
+            break;
+        }
+      };
+
+      // Direct keyboard events
+      document.addEventListener('keydown', handleKeyDown);
+      document.addEventListener('keyup', handleKeyUp);
+      
+      // Forwarded keyboard events from parent
+      window.addEventListener('message', (event) => {
+        if (event.data.type === 'KEYBOARD_EVENT') {
+          if (event.data.key.startsWith('Arrow')) {
+            const keyName = event.data.key.replace('Arrow', '').toLowerCase();
+            if (['up', 'down', 'left', 'right'].includes(keyName)) {
+              if (keyName === 'up' && player.onGround) {
+                player.velocityY = -player.jumpPower;
+                player.onGround = false;
+              } else if (keyName !== 'up') {
+                keys[keyName] = true;
+                setTimeout(() => keys[keyName] = false, 100);
+              }
+            }
+          }
+        }
+      });
+    }
+
+    let lastTime = 0;
+    const targetFPS = 60;
+    const frameTime = 1000 / targetFPS;
+
+    function gameLoop(currentTime) {
+      if (currentTime - lastTime < frameTime) {
+        requestAnimationFrame(gameLoop);
+        return;
+      }
+      lastTime = currentTime;
+      
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw background grid
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < canvas.width; x += 20) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+      for (let y = 0; y < canvas.height; y += 20) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+
+      // Draw platforms
+      ctx.fillStyle = "#8B4513";
+      platforms.forEach(platform => {
+        ctx.fillRect(platform.x, platform.y, platform.w, platform.h);
+        // Add platform border
+        ctx.strokeStyle = "#654321";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(platform.x, platform.y, platform.w, platform.h);
+      });
+
+      // Draw water with animation
+      const waterGradient = ctx.createLinearGradient(0, waterLevel, 0, canvas.height);
+      waterGradient.addColorStop(0, 'rgba(52, 152, 219, 0.8)');
+      waterGradient.addColorStop(1, 'rgba(41, 128, 185, 0.9)');
+      
+      ctx.fillStyle = waterGradient;
+      ctx.fillRect(0, waterLevel, canvas.width, canvas.height - waterLevel);
+      
+      // Add water animation effect
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+      ctx.lineWidth = 2;
+      for (let i = 0; i < 5; i++) {
+        const waveY = waterLevel + Math.sin(Date.now() * 0.005 + i) * 3;
+        ctx.beginPath();
+        ctx.moveTo(0, waveY);
+        ctx.lineTo(canvas.width, waveY);
+        ctx.stroke();
+      }
+
+      // Player movement with acceleration
+      if (keys.left) {
+        player.velocityX -= player.acceleration;
+        if (player.velocityX < -player.speed) player.velocityX = -player.speed;
+      } else if (keys.right) {
+        player.velocityX += player.acceleration;
+        if (player.velocityX > player.speed) player.velocityX = player.speed;
+      } else {
+        player.velocityX *= player.friction;
+      }
+
+      // Apply gravity
+      player.velocityY += 0.6;
+      
+      // Apply velocity
+      player.x += player.velocityX;
+      player.y += player.velocityY;
+
+      // Check platform collisions
+      player.onGround = false;
+      platforms.forEach(platform => {
+        if (player.x < platform.x + platform.w &&
+            player.x + player.w > platform.x &&
+            player.y < platform.y + platform.h &&
+            player.y + player.h > platform.y &&
+            player.velocityY > 0) {
+          player.y = platform.y - player.h;
+          player.velocityY = 0;
+          player.onGround = true;
+        }
+      });
+
+      // Boundaries
+      player.x = Math.max(0, Math.min(canvas.width - player.w, player.x));
+      if (player.y > canvas.height) {
+        gameOver = true;
+      }
+
+      // Draw player
+      ctx.font = "24px Arial";
+      ctx.fillText(player.emoji, player.x, player.y + player.h - 5);
+
+      // Rising water
+      waterLevel -= 0.3;
+      if (waterLevel < 0) {
+        win = true;
+      }
+
+      // Check if player is in water
+      if (player.y + player.h > waterLevel) {
+        gameOver = true;
+      }
+
+      // Update score
+      score = Math.max(score, Math.floor((500 - waterLevel) * 10));
+
+      // Draw score
+      ctx.fillStyle = "white";
+      ctx.font = "20px Arial";
+      ctx.fillText(`Score: ${score}`, 10, 30);
+
+      // Draw water level indicator
+      ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+      ctx.fillRect(canvas.width - 20, 0, 15, waterLevel);
+
+      // Game messages
+      if (win) {
+        gameRunning = false;
+        ctx.fillStyle = "#2ecc71";
+        ctx.font = "30px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText("✅ Escaped the flood!", canvas.width / 2, canvas.height / 2);
+        ctx.textAlign = "left";
+        restartBtn.style.display = "inline-block";
+        return;
+      }
+
+      if (gameOver) {
+        gameRunning = false;
+        ctx.fillStyle = "#e74c3c";
+        ctx.font = "30px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText("💀 Caught in the flood!", canvas.width / 2, canvas.height / 2);
+        ctx.textAlign = "left";
+        restartBtn.style.display = "inline-block";
+        return;
+      }
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    // Initialize
+    document.addEventListener("DOMContentLoaded", initGame);
+    restartBtn.addEventListener("click", initGame);
+  </script>
+</body>
+</html>

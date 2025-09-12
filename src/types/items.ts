@@ -9,7 +9,7 @@ export interface TreeItem {
   rarity: 'common' | 'uncommon' | 'rare' | 'epic';
 }
 
-export type TreeStage = 'pot' | 'seed' | 'sapling' | 'growing' | 'mature' | 'blooming';
+export type TreeStage = 'pot' | 'seed' | 'sapling' | 'growing' | 'mature' | 'blooming' | 'tree' | 'forest';
 
 export interface UserInventory {
   items: {
@@ -85,8 +85,10 @@ export const TREE_ITEMS: TreeItem[] = [
 export const STAGE_REQUIREMENTS: { [key in TreeStage]: { [itemId: string]: number } } = {
   pot: {}, // Empty pot, no requirements
   seed: { seed: 1 },
-  sapling: { seed: 1, water: 3 },
-  growing: { seed: 1, water: 3, sunlight: 5 },
-  mature: { seed: 1, water: 3, sunlight: 5, nutrients: 2 },
-  blooming: { seed: 1, water: 3, sunlight: 5, nutrients: 2, fertilizer: 1, love: 1 }
+  sapling: { water: 1, sunlight: 1 },
+  growing: { water: 2, sunlight: 2, nutrients: 1 },
+  mature: { water: 2, sunlight: 2, nutrients: 2 },
+  blooming: { water: 3, sunlight: 3, nutrients: 2, fertilizer: 1 },
+  tree: { water: 3, sunlight: 3, nutrients: 3, fertilizer: 1, love: 1 },
+  forest: { water: 5, sunlight: 5, nutrients: 5, fertilizer: 2, love: 2 }
 };

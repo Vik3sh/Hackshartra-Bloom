@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🌋 Earthquake Survival</title>
+  <style>
+    body {
+      margin: 0;
+      background: #2c3e50;
+      font-family: Arial, sans-serif;
+      color: white;
+      text-align: center;
+    }
+    canvas {
+      background: #7f8c8d;
+      display: block;
+      margin: auto;
+      border: 3px solid white;
+      border-radius: 10px;
+      margin-top: 10px;
+    }
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+      background: #c0392b;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #e74c3c;
+    }
+  </style>
+</head>
+<body>
+  <h1>🌋 Earthquake Survival</h1>
+  <p>Use ⬅️ ➡️ ⬆️ ⬇️ to move — Get under ANY safe cover before the building collapses!</p>
+  <canvas id="gameCanvas" width="400" height="500"></canvas>
+  <button id="restartBtn" style="display:none;">🔄 Restart</button>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const restartBtn = document.getElementById("restartBtn");
+
+    let player, safeSpots, keys, timeLeft, gameOver, win;
+
+    function initGame() {
+      player = { x: 30, y: 450, w: 40, h: 40, emoji: "👨" }; // Increased size for emoji
+      // Multiple safe covers: tables & bed
+      safeSpots = [
+        { x: 50, y: 120, w: 100, h: 50, label: "Table" },
+        { x: 250, y: 200, w: 120, h: 60, label: "Bed" },
+        { x: 80, y: 300, w: 90, h: 50, label: "Desk" }
+      ];
+      keys = {};
+      timeLeft = 15; 
+      gameOver = false;
+      win = false;
+      restartBtn.style.display = "none";
+      countdown();
+      gameLoop();
+    }
+
+    // Controls
+    document.addEventListener("keydown", (e) => keys[e.code] = true);
+    document.addEventListener("keyup", (e) => keys[e.code] = false);
+    restartBtn.addEventListener("click", initGame);
+
+    function countdown() {
+      if (timeLeft > 0 && !gameOver && !win) {
+        timeLeft--;
+        setTimeout(countdown, 1000);
+      } else if (timeLeft <= 0 && !win) {
+        gameOver = true;
+        restartBtn.style.display = "inline-block";
+      }
+    }
+
+    function gameLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Screen shake effect
+      const shake = gameOver || win ? 0 : Math.random() * 4 - 2;
+      ctx.save();
+      ctx.translate(shake, shake);
+
+      // Draw safe spots
+      safeSpots.forEach(spot => {
+        ctx.fillStyle = "#8B4513"; 
+        ctx.fillRect(spot.x, spot.y, spot.w, spot.h);
+        ctx.fillStyle = "black";
+        ctx.font = "14px Arial";
+        ctx.fillText(spot.label, spot.x + 5, spot.y - 5);
+      });
+
+      // Player movement
+      if (keys["ArrowLeft"]) player.x -= 3;
+      if (keys["ArrowRight"]) player.x += 3;
+      if (keys["ArrowUp"]) player.y -= 3;
+      if (keys["ArrowDown"]) player.y += 3;
+
+      // Boundaries
+      if (player.x < 0) player.x = 0;
+      if (player.x + player.w > canvas.width) player.x = canvas.width - player.w;
+      if (player.y < 0) player.y = 0;
+      if (player.y + player.h > canvas.height) player.y = canvas.height - player.h;
+
+      // Draw player as emoji
+      ctx.font = `${player.w - 5}px Arial`; // Adjust font size based on player width
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.5)'; // Add a shadow for better visibility
+      ctx.shadowBlur = 5;
+      ctx.fillText(player.emoji, player.x, player.y + player.h - 5); // Adjust Y to center the emoji vertically
+      ctx.shadowBlur = 0; // Reset shadow
+
+      ctx.restore();
+
+      // Timer
+      ctx.fillStyle = "white";
+      ctx.font = "18px Arial";
+      ctx.fillText("⏳ Time: " + timeLeft, 10, 20);
+
+      // Win condition → inside ANY safe spot
+      safeSpots.forEach(spot => {
+        if (player.x > spot.x && player.x + player.w < spot.x + spot.w &&
+            player.y > spot.y && player.y + player.h < spot.y + spot.h) {
+          win = true;
+        }
+      });
+
+      // Messages
+      if (win) {
+        ctx.fillStyle = "lime";
+        ctx.font = "26px Arial";
+        ctx.fillText("🎉 Safe under cover!", 90, 300);
+        restartBtn.style.display = "inline-block";
+        return;
+      }
+
+      if (gameOver) {
+        ctx.fillStyle = "red";
+        ctx.font = "26px Arial";
+        ctx.fillText("💀 Building collapsed!", 70, 300);
+        restartBtn.style.display = "inline-block";
+        return;
+      }
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    initGame();
+  </script>
+</body>
+</html>

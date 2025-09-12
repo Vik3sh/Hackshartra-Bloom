@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useProfile } from '@/hooks/useProfile';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -6,8 +6,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
-import { Search, Plus, UserPlus, ChevronRight } from 'lucide-react';
+import { Search, Plus, UserPlus, ChevronRight, Edit3, Save, X } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import PokemonAvatarPicker from '@/components/auth/PokemonAvatarPicker';
 
 const StatPill: React.FC<{ label: string; value: string }> = ({ label, value }) => (
   <div className="flex flex-col items-center justify-center rounded-2xl bg-white/90 shadow-sm px-6 py-4">
@@ -42,55 +43,174 @@ const MiniPost: React.FC<{ title: string; image?: string }> = ({ title, image })
 const Profile: React.FC = () => {
   const { profile, updateProfile } = useProfile();
   const { toast } = useToast();
-  const [localCoverUrl, setLocalCoverUrl] = React.useState<string | undefined>(undefined);
-  const [uploading, setUploading] = React.useState(false);
-  const name = profile?.full_name || 'Sandra';
+  const name = profile?.full_name || 'User';
+  
+  // Edit state
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState(profile?.full_name || '');
+  const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+  const [selectedAvatar, setSelectedAvatar] = useState<string | null>(profile?.pokemon_avatar || null);
+  const [isUpdating, setIsUpdating] = useState(false);
 
-  const handleCoverChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !profile) return;
-    setUploading(true);
+  // Handler functions
+  const handleEditClick = () => {
+    setIsEditing(true);
+    setEditName(profile?.full_name || '');
+    setSelectedAvatar(profile?.pokemon_avatar || null);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditName(profile?.full_name || '');
+    setSelectedAvatar(profile?.pokemon_avatar || null);
+    setShowAvatarPicker(false);
+  };
+
+  const handleSaveProfile = async () => {
+    if (!editName.trim()) {
+      toast({
+        title: "Error",
+        description: "Name cannot be empty",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUpdating(true);
     try {
-      const path = `${profile.user_id}/cover/${Date.now()}_${file.name}`;
-      const { error: uploadError } = await supabase.storage
-        .from('certificates')
-        .upload(path, file, { upsert: false });
-      if (uploadError) throw uploadError;
-      const { data: { publicUrl } } = supabase.storage
-        .from('certificates')
-        .getPublicUrl(path);
-      setLocalCoverUrl(publicUrl);
-      const { error } = await updateProfile({ coverImage: publicUrl } as any) || {} as any;
+      const { error } = await updateProfile({
+        full_name: editName.trim(),
+        pokemon_avatar: selectedAvatar
+      });
+
       if (error) {
-        console.error('Failed to persist cover URL:', error);
+        throw error;
       }
-      toast({ title: 'Cover photo updated' });
-    } catch (err: any) {
-      console.error('Cover upload failed:', err);
-      toast({ title: 'Upload failed', description: err.message || 'Could not upload cover', variant: 'destructive' });
+
+      toast({
+        title: "Success",
+        description: "Profile updated successfully!",
+      });
+
+      setIsEditing(false);
+      setShowAvatarPicker(false);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update profile",
+        variant: "destructive",
+      });
     } finally {
-      setUploading(false);
-      e.target.value = '';
+      setIsUpdating(false);
     }
   };
 
+  const handleAvatarSelect = (avatarUrl: string) => {
+    setSelectedAvatar(avatarUrl);
+  };
+
+  const handleAvatarConfirm = () => {
+    setShowAvatarPicker(false);
+  };
+
+  const handleAvatarSkip = () => {
+    setSelectedAvatar(null);
+    setShowAvatarPicker(false);
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#e8edff] via-[#eef1ff] to-[#f3eaff]">
+    <div className="bg-gradient-to-br from-[#e8edff] via-[#eef1ff] to-[#f3eaff]">
       <div className="mx-auto max-w-7xl px-6 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Left main content */}
           <div className="lg:col-span-3 space-y-6">
-            <div className="flex items-center gap-4">
-              {profile?.pokemonAvatar ? (
-                <img src={profile?.pokemonAvatar} alt="Avatar" className="w-12 h-12 rounded-full object-cover" />
-              ) : (
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-400 to-pink-500 text-white flex items-center justify-center font-semibold">
-                  {name.charAt(0)}
-                </div>
-              )}
-              <div>
-                <div className="text-sm text-slate-600">Hi {name},</div>
-                <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">Welcome back!</h1>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                {isEditing ? (
+                  <div className="flex items-center gap-4">
+                    <div className="relative">
+                      {selectedAvatar ? (
+                        <img 
+                          src={selectedAvatar} 
+                          alt="Selected Pokemon Avatar" 
+                          className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-lg" 
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-400 to-pink-500 text-white flex items-center justify-center font-semibold">
+                          {editName.charAt(0)}
+                        </div>
+                      )}
+                      <button
+                        onClick={() => setShowAvatarPicker(true)}
+                        className="absolute -bottom-1 -right-1 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-blue-600 transition-colors"
+                      >
+                        ✏️
+                      </button>
+                    </div>
+                    <div>
+                      <Input
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        className="text-sm text-slate-600 border-gray-300"
+                        placeholder="Enter your name"
+                      />
+                      <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 mt-1">Edit Profile</h1>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-4">
+                    {profile?.pokemon_avatar ? (
+                      <img 
+                        src={profile.pokemon_avatar} 
+                        alt="Pokemon Avatar" 
+                        className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-lg" 
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-400 to-pink-500 text-white flex items-center justify-center font-semibold">
+                        {name.charAt(0)}
+                      </div>
+                    )}
+                    <div>
+                      <div className="text-sm text-slate-600">Hi {name},</div>
+                      <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">Welcome back!</h1>
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              {/* Edit/Save/Cancel buttons */}
+              <div className="flex items-center gap-2">
+                {isEditing ? (
+                  <>
+                    <Button
+                      onClick={handleSaveProfile}
+                      disabled={isUpdating}
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      {isUpdating ? (
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Save className="w-4 h-4" />
+                      )}
+                    </Button>
+                    <Button
+                      onClick={handleCancelEdit}
+                      variant="outline"
+                      className="text-red-600 border-red-300 hover:bg-red-50"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    onClick={handleEditClick}
+                    variant="outline"
+                    className="text-blue-600 border-blue-300 hover:bg-blue-50"
+                  >
+                    <Edit3 className="w-4 h-4 mr-2" />
+                    Edit Profile
+                  </Button>
+                )}
               </div>
             </div>
 
@@ -133,8 +253,12 @@ const Profile: React.FC = () => {
             <Card className="rounded-3xl bg-white/90">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  {profile?.pokemonAvatar ? (
-                    <img src={profile?.pokemonAvatar} alt="Avatar" className="w-10 h-10 rounded-full object-cover" />
+                  {profile?.pokemon_avatar ? (
+                    <img 
+                      src={profile.pokemon_avatar} 
+                      alt="Pokemon Avatar" 
+                      className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-md" 
+                    />
                   ) : (
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-pink-500 text-white flex items-center justify-center text-sm font-semibold">
                       {name.charAt(0)}
@@ -196,19 +320,21 @@ const Profile: React.FC = () => {
                 <div className="relative">
                   <div
                     className="h-64 bg-cover bg-center"
-                    style={{ backgroundImage: `url(${localCoverUrl || (profile as any)?.coverImage || '/placeholder.svg'})` }}
+                    style={{ backgroundImage: `url('/placeholder.svg')` }}
                   />
-                  <div className="absolute top-3 right-3">
-                    <label>
-                      <input type="file" accept="image/*" className="hidden" onChange={handleCoverChange} />
-                      <Button size="sm" variant="secondary" disabled={uploading}>{uploading ? 'Uploading…' : 'Change cover'}</Button>
-                    </label>
-                  </div>
                   <div className="absolute -bottom-6 left-5 flex items-center gap-2">
-                    <Avatar className="h-14 w-14 ring-4 ring-white">
-                      <AvatarImage src={profile?.pokemonAvatar} alt={name} />
-                      <AvatarFallback>{name.charAt(0)}</AvatarFallback>
-                    </Avatar>
+                    {profile?.pokemon_avatar ? (
+                      <img 
+                        src={profile.pokemon_avatar} 
+                        alt="Pokemon Avatar" 
+                        className="h-14 w-14 rounded-full object-cover ring-4 ring-white shadow-lg" 
+                      />
+                    ) : (
+                      <Avatar className="h-14 w-14 ring-4 ring-white">
+                        <AvatarImage src={profile?.pokemon_avatar} alt={name} />
+                        <AvatarFallback>{name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                    )}
                   </div>
                 </div>
                 <div className="p-5 pt-8">
@@ -274,6 +400,33 @@ const Profile: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Pokemon Avatar Picker Modal */}
+      {showAvatarPicker && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-2xl">
+              <h2 className="text-xl font-semibold">Choose Your Pokemon Avatar</h2>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowAvatarPicker(false)}
+                className="rounded-full"
+              >
+                ✕
+              </Button>
+            </div>
+            <div className="p-6">
+              <PokemonAvatarPicker
+                selected={selectedAvatar}
+                onSelect={handleAvatarSelect}
+                onConfirm={handleAvatarConfirm}
+                onSkip={handleAvatarSkip}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

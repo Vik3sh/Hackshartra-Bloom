@@ -12,6 +12,7 @@ export interface Profile {
   student_id?: string;
   faculty_id?: string;
   assigned_faculty_id?: string;
+  pokemon_avatar?: string;
   created_at: string;
   updated_at: string;
 }

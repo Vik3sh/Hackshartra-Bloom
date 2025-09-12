@@ -18,15 +18,26 @@ import ModuleSelector from '@/components/quiz/ModuleSelector';
 import ChallengeGrid from '@/components/challenges/ChallengeGrid';
 import ChallengeDetailModal from '@/components/challenges/ChallengeDetailModal';
 import UnifiedLessonSystem from '@/components/lessons/UnifiedLessonSystem';
+import LessonContent from '@/components/lessons/LessonContent';
+import RewardMap from '@/components/rewards/RewardMap';
 import NewsSection from '@/components/news/NewsSection';
 import GameModal from '@/components/rpg/GameModal';
 import Profile from '@/components/profile/Profile';
+import SimpleEnhancedDashboard from '@/components/dashboard/SimpleEnhancedDashboard';
+import CommunityFeed from '@/components/community/CommunityFeed';
+import QuizPage from '@/pages/QuizPage';
+import WelcomeQuiz from '@/components/onboarding/WelcomeQuiz';
+import DeveloperMode from '@/components/dev/DeveloperMode';
+import DevModeTest from '@/components/dev/DevModeTest';
+import GameTest from '@/components/dev/GameTest';
 import { QuizModule } from '@/data/quizData';
 import { Challenge, getUnlockedChallenges } from '@/data/challenges';
 import { Lesson } from '@/data/lessons';
 import { Game, Boss } from '@/data/rpgLessons';
 import { LessonQuest, LessonBoss } from '@/data/lessonQuests';
 import { useProgress } from '@/contexts/ProgressContext';
+import { useLessonProgression } from '@/contexts/LessonProgressionContext';
+import { useToast } from '@/contexts/ToastContext';
 
 const AvatarStack: React.FC<{ names: string[] }> = ({ names }) => (
   <div className="flex -space-x-2">
@@ -114,11 +125,28 @@ const Dashboard: React.FC = () => {
   const [showQuestModal, setShowQuestModal] = useState(false);
   const [selectedLessonBoss, setSelectedLessonBoss] = useState<LessonBoss | null>(null);
   const [showLessonBossModal, setShowLessonBossModal] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const [showWelcomeQuiz, setShowWelcomeQuiz] = useState(false);
+  const [showDeveloperMode, setShowDeveloperMode] = useState(false);
+  const [showLessonContent, setShowLessonContent] = useState(false);
 
   const { profile } = useProfile();
   const { signOut } = useAuth();
   const navigate = useNavigate();
-  const { userProgress } = useProgress();
+  const { userProgress, completeChallenge, completeLesson, completeGame, addItems } = useProgress();
+  const { lessonProgress, completeLesson: completeLessonProgression, getModuleProgress } = useLessonProgression();
+  const { showToast } = useToast();
+
+  // Check if user is new and show welcome quiz
+  React.useEffect(() => {
+    const hasCompletedWelcomeQuiz = localStorage.getItem('welcomeQuizCompleted');
+    const hasAnyProgress = userProgress.totalPoints > 0 || 
+                          (userProgress.inventory?.items && Object.values(userProgress.inventory.items).some(count => count > 0));
+    
+    if (!hasCompletedWelcomeQuiz && !hasAnyProgress) {
+      setShowWelcomeQuiz(true);
+    }
+  }, [userProgress]);
 
   const handleSignOut = async () => {
     try {
@@ -162,6 +190,59 @@ const Dashboard: React.FC = () => {
 
   const handleCompleteChallenge = (challengeId: string) => {
     console.log(`Challenge ${challengeId} completed`);
+    
+    // Much more conservative challenge rewards
+    const getChallengeRewards = (challengeId: string) => {
+      const baseRewards = {
+        water: 1,
+        sunlight: 1,
+        nutrients: 1,
+        fertilizer: 0,
+        love: 0
+      };
+
+      // Small difficulty-based bonuses
+      if (challengeId.includes('easy')) {
+        return baseRewards;
+      } else if (challengeId.includes('medium')) {
+        return {
+          ...baseRewards,
+          water: 2,
+          sunlight: 2,
+          nutrients: 1,
+          fertilizer: 1
+        };
+      } else if (challengeId.includes('hard')) {
+        return {
+          ...baseRewards,
+          water: 2,
+          sunlight: 2,
+          nutrients: 2,
+          fertilizer: 1,
+          love: 1
+        };
+      }
+
+      return baseRewards;
+    };
+
+    const challengeRewards = getChallengeRewards(challengeId);
+    const xpReward = 100; // Much lower XP for challenges
+    
+    // Complete challenge with enhanced rewards
+    completeChallenge(challengeId, xpReward, challengeRewards);
+    addItems(challengeRewards);
+    
+    // Show challenge completion notification
+    showToast({
+      type: 'challenge',
+      title: '🏆 Challenge Completed!',
+      message: 'Excellent! You made a real-world impact!',
+      rewards: challengeRewards,
+      xp: xpReward,
+      duration: 6000
+    });
+    
     setShowChallengeDetail(false);
     setSelectedChallenge(null);
   };
@@ -173,12 +254,101 @@ const Dashboard: React.FC = () => {
 
   const handleStartLesson = (lesson: Lesson) => {
     setSelectedLesson(lesson);
-    setShowLessonDetail(true);
+    setShowLessonContent(true);
   };
 
   const handleCompleteLesson = (lessonId: string) => {
     console.log(`Lesson ${lessonId} completed`);
-    setShowLessonDetail(false);
+    
+    // Get module ID for progression system
+    const getModuleId = (lessonId: string): string => {
+      if (lessonId.startsWith('climate-')) return 'climate-change';
+      if (lessonId.startsWith('waste-')) return 'waste-management';
+      if (lessonId.startsWith('energy-')) return 'renewable-energy';
+      if (lessonId.startsWith('conservation-')) return 'conservation';
+      return 'climate-change';
+    };
+
+    const moduleId = getModuleId(lessonId);
+    
+    // Complete lesson in progression system
+    completeLessonProgression(lessonId, moduleId);
+    
+    // Enhanced reward system based on lesson number and module
+    const getLessonRewards = (lessonId: string, moduleId: string) => {
+      // Extract lesson number (e.g., climate-3 -> 3)
+      const lessonNumber = parseInt(lessonId.split('-')[1]) || 1;
+      
+      // Much more conservative base rewards - progression should be meaningful
+      const baseRewards = {
+        water: Math.max(1, Math.floor(lessonNumber / 2)), // 1 water every 2 lessons
+        sunlight: Math.max(1, Math.floor(lessonNumber / 2)), // 1 sunlight every 2 lessons
+        nutrients: Math.max(0, Math.floor(lessonNumber / 3)), // 1 nutrient every 3 lessons
+        fertilizer: Math.max(0, Math.floor(lessonNumber / 4)), // 1 fertilizer every 4 lessons
+        love: Math.max(0, Math.floor(lessonNumber / 5)) // 1 love every 5 lessons
+      };
+
+      // Small module-specific bonuses (only +1)
+      if (moduleId === 'climate-change') {
+        return { ...baseRewards, water: baseRewards.water + 1 };
+      } else if (moduleId === 'waste-management') {
+        return { ...baseRewards, nutrients: baseRewards.nutrients + 1 };
+      } else if (moduleId === 'renewable-energy') {
+        return { ...baseRewards, sunlight: baseRewards.sunlight + 1 };
+      } else if (moduleId === 'conservation') {
+        return { ...baseRewards, fertilizer: baseRewards.fertilizer + 1, love: baseRewards.love + 1 };
+      }
+
+      return baseRewards;
+    };
+
+    const lessonRewards = getLessonRewards(lessonId, moduleId);
+    
+    // Calculate XP based on lesson number - much more conservative
+    const lessonNumber = parseInt(lessonId.split('-')[1]) || 1;
+    const xpReward = 50 + (lessonNumber * 25); // Much lower XP rewards
+    
+    // Update both contexts
+    completeLesson(lessonId, xpReward, lessonRewards);
+    addItems(lessonRewards);
+    
+    // Check if module is completed
+    const moduleProgress = getModuleProgress(moduleId);
+    if (moduleProgress === 100) {
+      // Module completion bonus - much smaller
+      const moduleBonus = {
+        water: 2,
+        sunlight: 2,
+        nutrients: 1,
+        fertilizer: 1,
+        love: 1
+      };
+      
+      addItems(moduleBonus);
+      
+      // Show module completion notification
+      showToast({
+        type: 'module',
+        title: '🎉 Module Completed!',
+        message: 'Congratulations! You\'ve completed an entire module!',
+        rewards: moduleBonus,
+        xp: 200, // Much lower XP bonus
+        duration: 8000
+      });
+    }
+    
+    // Show lesson completion notification
+    showToast({
+      type: 'lesson',
+      title: '✅ Lesson Completed!',
+      message: 'Great job! Keep up the learning!',
+      rewards: lessonRewards,
+      xp: xpReward,
+      duration: 5000
+    });
+    
+    // Close lesson content
+    setShowLessonContent(false);
     setSelectedLesson(null);
   };
 
@@ -194,6 +364,46 @@ const Dashboard: React.FC = () => {
 
   const handleCompleteGame = (gameId: string) => {
     console.log(`Game ${gameId} completed`);
+    
+    // Much more conservative game rewards
+    const getGameRewards = (gameId: string) => {
+      const baseRewards = {
+        water: 1,
+        sunlight: 1,
+        nutrients: 1,
+        fertilizer: 0,
+        love: 0
+      };
+
+      // Small game-specific bonuses
+      if (gameId.includes('waste-sorting')) {
+        return { ...baseRewards, nutrients: 2 };
+      } else if (gameId.includes('temperature-rising')) {
+        return { ...baseRewards, water: 2 };
+      } else if (gameId.includes('greenhouse-puzzle')) {
+        return { ...baseRewards, sunlight: 2, nutrients: 1 };
+      }
+
+      return baseRewards;
+    };
+
+    const gameRewards = getGameRewards(gameId);
+    const xpReward = 75; // Much lower XP for games
+    
+    // Complete game with enhanced rewards
+    completeGame(gameId, xpReward, gameRewards);
+    addItems(gameRewards);
+    
+    // Show game completion notification
+    showToast({
+      type: 'game',
+      title: '🎮 Game Completed!',
+      message: 'Awesome! You mastered that game!',
+      rewards: gameRewards,
+      xp: xpReward,
+      duration: 5000
+    });
+    
     setShowGameModal(false);
     setSelectedGame(null);
   };
@@ -251,12 +461,16 @@ const Dashboard: React.FC = () => {
     setSelectedLessonBoss(null);
   };
 
+  const handleWelcomeQuizComplete = () => {
+    localStorage.setItem('welcomeQuizCompleted', 'true');
+    setShowWelcomeQuiz(false);
+  };
+
   return (
     <div className="min-h-screen bg-[#F6F7FB] parallax-container">
       {/* Header */}
-      <header className="bg-white/95 backdrop-blur-md shadow-
-      xl sticky top-4 z-50 mx-4 rounded-2xl border border-white/20 navbar-3d navbar-shadow navbar-curved navbar-floating navbar-glass">
-        <div className="w-full px-6 py-4">
+      <header className="bg-white/95 backdrop-blur-md shadow-xl fixed top-4 left-2 right-2 z-50 rounded-2xl border border-white/20 navbar-3d navbar-shadow navbar-curved navbar-floating navbar-glass">
+        <div className="w-full px-4 py-4">
           <div className="flex items-center justify-between">
             {/* Logo Section */}
             <div className="flex items-center space-x-3">
@@ -303,10 +517,16 @@ const Dashboard: React.FC = () => {
                     News
                   </TabsTrigger>
                   <TabsTrigger 
-                    value="profile" 
+                    value="quiz" 
                     className="data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-sm px-6 py-2 transition-all duration-300 ease-in-out hover:bg-gray-200"
                   >
-                    Profile
+                    Quiz
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="rewards" 
+                    className="data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-sm px-6 py-2 transition-all duration-300 ease-in-out hover:bg-gray-200"
+                  >
+                    Rewards
                   </TabsTrigger>
                 </TabsList>
               </Tabs>
@@ -320,9 +540,31 @@ const Dashboard: React.FC = () => {
               </div>
               
               {/* User Avatar */}
-              <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                <span className="text-gray-600 text-sm font-medium">K</span>
+              <div 
+                className="w-8 h-8 rounded-full cursor-pointer hover:opacity-80 transition-opacity overflow-hidden"
+                onClick={() => setShowProfile(true)}
+              >
+                {profile?.pokemon_avatar ? (
+                  <img 
+                    src={profile.pokemon_avatar} 
+                    alt="User Avatar" 
+                    className="w-full h-full object-cover" 
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                    <span className="text-gray-600 text-sm font-medium">K</span>
+                  </div>
+                )}
               </div>
+              
+              {/* Developer Mode Button */}
+              <Button
+                onClick={() => setShowDeveloperMode(true)}
+                className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 text-xs rounded-full"
+                title="Developer Mode"
+              >
+                🛠️ DEV
+              </Button>
               
               {/* Logout Button */}
               <Button
@@ -350,106 +592,13 @@ const Dashboard: React.FC = () => {
       </header>
 
       {/* Main Content */}
-      <main className="p-6">
+      <main className="px-2 py-6 pt-24">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsContent value="dashboard" className="mt-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Activity */}
-          <Card className="rounded-3xl border bg-white">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-lg font-semibold">Activity</h3>
-                <span className="text-xs text-muted-foreground">Last 7 days</span>
-              </div>
-              <div className="text-5xl font-semibold mb-2">24,9</div>
-              <div className="text-sm text-muted-foreground mb-6">Hours spent</div>
-              <ActivityBars />
-            </CardContent>
-          </Card>
-
-          {/* Progress statistics */}
-          <Card className="rounded-3xl border bg-white">
-            <CardContent className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Progress statistics</h3>
-              <div className="flex items-center gap-4 mb-6">
-                <div className="flex-1 h-2 rounded-full bg-slate-200">
-                  <div className="h-2 rounded-full bg-gradient-to-r from-green-400 via-yellow-400 to-emerald-500" style={{ width: '64%' }} />
-                </div>
-                <div className="text-4xl font-semibold">64%</div>
-              </div>
-              <div className="grid grid-cols-4 gap-4">
-                <div className="text-center rounded-2xl border p-4">
-                  <div className="w-10 h-10 rounded-full bg-purple-100 text-purple-600 mx-auto flex items-center justify-center mb-2">8</div>
-                  <div className="text-xs text-muted-foreground">In progress</div>
-                </div>
-                <div className="text-center rounded-2xl border p-4">
-                  <div className="w-10 h-10 rounded-full bg-green-100 text-green-600 mx-auto flex items-center justify-center mb-2">12</div>
-                  <div className="text-xs text-muted-foreground">Completed</div>
-                </div>
-                <div className="text-center rounded-2xl border p-4">
-                  <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center mb-2">2</div>
-                  <div className="text-xs text-muted-foreground">Late</div>
-                </div>
-                <div className="text-center rounded-2xl border p-4">
-                  <div className="w-10 h-10 rounded-full bg-yellow-100 text-yellow-600 mx-auto flex items-center justify-center mb-2">14</div>
-                  <div className="text-xs text-muted-foreground">Upcoming</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Previous cards: Eco Tree, Daily Reward, Learning Streak */}
-          <div className="space-y-6">
-            <Card className="rounded-3xl border bg-white md:min-h-[360px]">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                    <Leaf className="w-6 h-6 text-green-600" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold mb-1">Your Eco Tree</h3>
-                    <p className="text-sm text-muted-foreground">Grows with your environmental actions.</p>
-                  </div>
-                </div>
-                <div className="mt-5">
-                  <ErrorBoundary>
-                    <CustomEcoTree />
-                  </ErrorBoundary>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-3xl border bg-white">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <Gift className="w-6 h-6 text-purple-600" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold mb-1">Daily Reward</h3>
-                    <p className="text-sm text-muted-foreground mb-3">Claim your daily bonus.</p>
-                    <Button className="bg-green-600 hover:bg-green-700 text-white rounded-xl">Claim 50 pts</Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-3xl border bg-white">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                    <Flame className="w-6 h-6 text-orange-600" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold mb-1">Learning Streak</h3>
-                    <p className="text-sm text-muted-foreground">7 days in a row.</p>
-                    <div className="text-2xl font-bold text-orange-600">7 days</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+            <SimpleEnhancedDashboard 
+              userProgress={userProgress}
+              onNavigate={(tab) => setActiveTab(tab)}
+            />
           </TabsContent>
 
           <TabsContent value="lessons" className="mt-6">
@@ -478,10 +627,10 @@ const Dashboard: React.FC = () => {
             </div>
           </TabsContent>
 
+
           <TabsContent value="community" className="mt-6">
-            <div className="text-center py-12">
-              <h3 className="text-xl font-semibold text-blue-900 mb-2">Community Coming Soon</h3>
-              <p className="text-blue-600">Connect with other environmental learners and share your progress.</p>
+            <div className="max-w-6xl mx-auto">
+              <CommunityFeed />
             </div>
           </TabsContent>
 
@@ -491,8 +640,14 @@ const Dashboard: React.FC = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="profile" className="mt-6">
-            <Profile />
+          <TabsContent value="quiz" className="mt-6">
+            <QuizPage />
+          </TabsContent>
+
+          <TabsContent value="rewards" className="mt-6">
+            <div className="max-w-6xl mx-auto">
+              <RewardMap />
+            </div>
           </TabsContent>
         </Tabs>
       </main>
@@ -556,6 +711,57 @@ const Dashboard: React.FC = () => {
           onClose={handleLessonBossModalClose}
         />
       )}
+
+      {/* Profile Modal */}
+      {showProfile && (
+        <div key="profile-modal" className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-2xl">
+              <h2 className="text-xl font-semibold">Profile</h2>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowProfile(false)}
+                className="rounded-full"
+              >
+                ✕
+              </Button>
+            </div>
+            <div className="p-0">
+              <Profile />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Welcome Quiz Modal */}
+      {showWelcomeQuiz && (
+        <WelcomeQuiz onComplete={handleWelcomeQuizComplete} />
+      )}
+
+      {/* Lesson Content Modal */}
+      {showLessonContent && selectedLesson && (
+        <LessonContent
+          lesson={selectedLesson}
+          onComplete={() => handleCompleteLesson(selectedLesson.id)}
+          onClose={() => {
+            setShowLessonContent(false);
+            setSelectedLesson(null);
+          }}
+        />
+      )}
+      
+        {/* Developer Mode Modal */}
+        <DeveloperMode 
+          isOpen={showDeveloperMode} 
+          onClose={() => setShowDeveloperMode(false)} 
+        />
+        
+        {/* Temporary Dev Mode Test - Remove this later */}
+        <div className="fixed bottom-4 right-4 z-40 space-y-2 max-h-96 overflow-y-auto">
+          <DevModeTest />
+          <GameTest />
+        </div>
     </div>
   );
 };

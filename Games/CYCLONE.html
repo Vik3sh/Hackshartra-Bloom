@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🌪️ Cyclone Survival</title>
+  <style>
+    body {
+      margin: 0;
+      background: #34495e;
+      font-family: 'Press Start 2P', cursive; /* A more "gamey" font */
+      color: white;
+      text-align: center;
+      overflow: hidden; /* Prevent scrollbars from background effects */
+    }
+    canvas {
+      background: linear-gradient(to bottom, #87CEEB, #4682B4); /* Sky blue to steel blue gradient */
+      display: block;
+      margin: auto;
+      border: 5px solid #ecf0f1; /* Thicker, lighter border */
+      border-radius: 15px;
+      margin-top: 15px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5); /* Soft shadow for the canvas */
+    }
+    button {
+      margin-top: 20px;
+      padding: 12px 25px;
+      font-size: 20px;
+      border: none;
+      border-radius: 10px;
+      background: #e74c3c; /* Brighter red */
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 5px 0 #c0392b; /* 3D effect */
+      transition: all 0.2s ease;
+    }
+    button:hover {
+      background: #c0392b; /* Darker on hover */
+      box-shadow: 0 2px 0 #a93226;
+      transform: translateY(3px);
+    }
+    h1 {
+      font-size: 3em;
+      text-shadow: 3px 3px #2c3e50;
+      margin-bottom: 10px;
+    }
+    p {
+      font-size: 1.2em;
+      margin-top: 5px;
+    }
+    /* Import Google Font for a retro game feel */
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+  </style>
+</head>
+<body>
+  <h1>🌪️ Cyclone Survival</h1>
+  <p>Use ⬅️ ➡️ ⬆️ ⬇️ to move — Avoid debris and reach the shelter!</p>
+  <canvas id="gameCanvas" width="500" height="400"></canvas>
+  <button id="restartBtn" style="display:none;">🔄 Restart</button>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const restartBtn = document.getElementById("restartBtn");
+
+    let player, shelter, debrisList, keys, gameOver, win;
+
+    function initGame() {
+      player = { x: 20, y: 180, w: 40, h: 40, emoji: "🏃" }; // Player as running man emoji, slightly larger
+      shelter = { x: 400, y: 150, w: 80, h: 100 }; // Larger shelter
+      debrisList = [];
+      keys = {};
+      gameOver = false;
+      win = false;
+      restartBtn.style.display = "none";
+
+      // Spawn debris more frequently and with more variation
+      setInterval(() => {
+        if (!gameOver && !win) {
+          let size = Math.random() * 25 + 15; // Debris size variation
+          let type = Math.floor(Math.random() * 3); // 0: square, 1: circle, 2: triangle
+          debrisList.push({
+            x: Math.random() * canvas.width,
+            y: -size, // Start above canvas
+            w: size,
+            h: size,
+            speed: Math.random() * 4 + 2, // Faster debris
+            rotation: Math.random() * Math.PI * 2,
+            rotationSpeed: Math.random() * 0.1 - 0.05, // Rotate debris
+            type: type
+          });
+        }
+      }, 500); // Spawn every 0.5 seconds
+
+      gameLoop();
+    }
+
+    // Controls
+    document.addEventListener("keydown", (e) => keys[e.code] = true);
+    document.addEventListener("keyup", (e) => keys[e.code] = false);
+    restartBtn.addEventListener("click", initGame);
+
+    function drawDebris(d) {
+        ctx.save();
+        ctx.translate(d.x + d.w / 2, d.y + d.h / 2);
+        ctx.rotate(d.rotation);
+        ctx.fillStyle = "#7f8c8d"; // Darker gray for debris
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+        ctx.shadowBlur = 5;
+
+        if (d.type === 0) { // Square
+            ctx.fillRect(-d.w / 2, -d.h / 2, d.w, d.h);
+        } else if (d.type === 1) { // Circle
+            ctx.beginPath();
+            ctx.arc(0, 0, d.w / 2, 0, Math.PI * 2);
+            ctx.fill();
+        } else { // Triangle
+            ctx.beginPath();
+            ctx.moveTo(0, -d.h / 2);
+            ctx.lineTo(d.w / 2, d.h / 2);
+            ctx.lineTo(-d.w / 2, d.h / 2);
+            ctx.closePath();
+            ctx.fill();
+        }
+        ctx.shadowBlur = 0;
+        ctx.restore();
+    }
+
+
+    function gameLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw shelter (more detailed house)
+      ctx.fillStyle = "#c0392b"; // Red roof
+      ctx.beginPath();
+      ctx.moveTo(shelter.x - 10, shelter.y); // Wider roof base
+      ctx.lineTo(shelter.x + shelter.w / 2, shelter.y - 40); // Higher peak
+      ctx.lineTo(shelter.x + shelter.w + 10, shelter.y);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = "#27ae60"; // Emerald green house body
+      ctx.fillRect(shelter.x, shelter.y, shelter.w, shelter.h);
+
+      // Add a door
+      ctx.fillStyle = "#8B4513"; // Brown door
+      ctx.fillRect(shelter.x + shelter.w / 2 - 10, shelter.y + shelter.h * 0.6, 20, shelter.h * 0.4);
+      // Add a window
+      ctx.fillStyle = "#add8e6"; // Light blue window
+      ctx.fillRect(shelter.x + 10, shelter.y + 20, 25, 25);
+      ctx.fillRect(shelter.x + shelter.w - 35, shelter.y + 20, 25, 25);
+
+
+      // Player movement
+      const playerSpeed = 4;
+      if (keys["ArrowLeft"]) player.x -= playerSpeed;
+      if (keys["ArrowRight"]) player.x += playerSpeed;
+      if (keys["ArrowUp"]) player.y -= playerSpeed;
+      if (keys["ArrowDown"]) player.y += playerSpeed;
+
+      // Boundaries
+      if (player.x < 0) player.x = 0;
+      if (player.x + player.w > canvas.width) player.x = canvas.width - player.w;
+      if (player.y < 0) player.y = 0;
+      if (player.y + player.h > canvas.height) player.y = canvas.height - player.h;
+
+      // Draw player as emoji
+      ctx.font = `${player.w - 5}px Arial`;
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+      ctx.shadowBlur = 8;
+      ctx.fillText(player.emoji, player.x, player.y + player.h - 5);
+      ctx.shadowBlur = 0;
+
+      // Draw debris
+      debrisList.forEach((d, i) => {
+        d.y += d.speed;
+        d.rotation += d.rotationSpeed; // Update rotation
+        drawDebris(d); // Use the new draw function
+
+        // Collision with player (simplified bounding box for emoji)
+        if (player.x < d.x + d.w &&
+            player.x + player.w > d.x &&
+            player.y < d.y + d.h &&
+            player.y + player.h > d.y) {
+          gameOver = true;
+        }
+
+        // Remove debris that leaves screen
+        if (d.y > canvas.height) debrisList.splice(i, 1);
+      });
+
+      // Check win (reached shelter) - adjust for larger shelter and player emoji
+      if (player.x + player.w > shelter.x + 10 &&
+          player.x < shelter.x + shelter.w - 10 &&
+          player.y + player.h > shelter.y + shelter.h * 0.6 && // Entered door area
+          player.y < shelter.y + shelter.h) {
+        win = true;
+      }
+
+      // Messages
+      if (win) {
+        ctx.fillStyle = "#2ecc71";
+        ctx.font = "30px 'Press Start 2P'";
+        ctx.shadowColor = 'black';
+        ctx.shadowBlur = 5;
+        ctx.fillText("✅ Safe inside shelter!", canvas.width / 2, canvas.height / 2);
+        restartBtn.style.display = "inline-block";
+        return;
+      }
+
+      if (gameOver) {
+        ctx.fillStyle = "#e74c3c";
+        ctx.font = "30px 'Press Start 2P'";
+        ctx.shadowColor = 'black';
+        ctx.shadowBlur = 5;
+        ctx.fillText("💀 Hit by flying debris!", canvas.width / 2, canvas.height / 2);
+        restartBtn.style.display = "inline-block";
+        return;
+      }
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    initGame();
+  </script>
+</body>
+</html>

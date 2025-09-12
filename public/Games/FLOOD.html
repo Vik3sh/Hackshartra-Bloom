@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🌊 Flood Escape</title>
+  <style>
+    body {
+      margin: 0;
+      background: #2c3e50;
+      font-family: Arial, sans-serif;
+      color: white;
+      text-align: center;
+    }
+    canvas {
+      background: linear-gradient(to top, #3498db, #2980b9);
+      display: block;
+      margin: auto;
+      border: 3px solid white;
+      border-radius: 10px;
+      margin-top: 10px;
+    }
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+      background: #27ae60;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #2ecc71;
+    }
+  </style>
+</head>
+<body>
+  <h1>🌊 Flood Escape</h1>
+  <p>Use ⬅️ ➡️ to move, ⬆️ to jump — Escape before the water rises!</p>
+  <canvas id="gameCanvas" width="400" height="500"></canvas>
+  <button id="restartBtn" style="display:none;">🔄 Restart</button>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const restartBtn = document.getElementById("restartBtn");
+
+    let player, platforms, waterLevel, keys, gameOver, win, score;
+
+    function initGame() {
+      player = { x: 180, y: 450, w: 30, h: 30, dy: 0, jumping: false };
+      platforms = [
+        { x: 150, y: 480, w: 100, h: 10 },
+        { x: 200, y: 380, w: 100, h: 10 },
+        { x: 80, y: 280, w: 100, h: 10 },
+        { x: 180, y: 180, w: 100, h: 10 },
+        { x: 250, y: 80, w: 100, h: 10 }
+      ];
+      waterLevel = 500;
+      keys = {};
+      gameOver = false;
+      win = false;
+      score = 0;
+      restartBtn.style.display = "none";
+      gameLoop();
+    }
+
+    // Controls
+    document.addEventListener("keydown", (e) => keys[e.code] = true);
+    document.addEventListener("keyup", (e) => keys[e.code] = false);
+    restartBtn.addEventListener("click", initGame);
+
+    function gameLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw water
+      ctx.fillStyle = "#1e90ff";
+      ctx.fillRect(0, waterLevel, canvas.width, canvas.height - waterLevel);
+      waterLevel -= 0.3; // rising water
+
+      // Draw platforms
+      ctx.fillStyle = "white";
+      platforms.forEach(p => ctx.fillRect(p.x, p.y, p.w, p.h));
+
+      // Player controls
+      if (keys["ArrowLeft"]) player.x -= 3;
+      if (keys["ArrowRight"]) player.x += 3;
+      if (keys["ArrowUp"] && !player.jumping) {
+        player.dy = -8;
+        player.jumping = true;
+      }
+
+      // Apply physics
+      player.y += player.dy;
+      player.dy += 0.4; // gravity
+
+      // Collision with platforms
+      platforms.forEach(p => {
+        if (player.x < p.x + p.w &&
+            player.x + player.w > p.x &&
+            player.y + player.h > p.y &&
+            player.y + player.h < p.y + p.h + 10 &&
+            player.dy >= 0) {
+          player.y = p.y - player.h;
+          player.dy = 0;
+          player.jumping = false;
+          score++; // gain points when landing
+        }
+      });
+
+      // Draw player
+      ctx.fillStyle = "yellow";
+      ctx.fillRect(player.x, player.y, player.w, player.h);
+
+      // Draw score
+      ctx.fillStyle = "white";
+      ctx.font = "16px Arial";
+      ctx.fillText("Score: " + score, 10, 20);
+
+      // Game over
+      if (player.y + player.h > waterLevel) {
+        ctx.fillStyle = "red";
+        ctx.font = "30px Arial";
+        ctx.fillText("💀 You drowned!", 100, 250);
+        gameOver = true;
+        restartBtn.style.display = "inline-block";
+        return;
+      }
+
+      // Win
+      if (player.y <= 50) {
+        ctx.fillStyle = "lime";
+        ctx.font = "30px Arial";
+        ctx.fillText("🎉 You Escaped!", 100, 250);
+        win = true;
+        restartBtn.style.display = "inline-block";
+        return;
+      }
+
+      if (!gameOver && !win) requestAnimationFrame(gameLoop);
+    }
+
+    initGame();
+  </script>
+</body>
+</html>

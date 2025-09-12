@@ -16,6 +16,7 @@ interface UserProgress {
   learningStreak: number;
   lastActiveDate: string;
   inventory: UserInventory;
+  currentStage: TreeStage;
 }
 
 interface ProgressContextType {
@@ -31,6 +32,7 @@ interface ProgressContextType {
   resetProgress: () => void;
   canUpgradeStage: (stage: TreeStage) => boolean;
   upgradeStage: (stage: TreeStage) => boolean;
+  addItems: (items: { [itemId: string]: number }) => void;
 }
 
 const ProgressContext = createContext<ProgressContextType | undefined>(undefined);
@@ -57,7 +59,8 @@ export const ProgressProvider: React.FC<ProgressProviderProps> = ({ children }) 
       items: {},
       currentStage: 'pot',
       stageProgress: {}
-    }
+    },
+    currentStage: 'pot'
   });
 
   // Load progress from localStorage on mount
@@ -95,6 +98,26 @@ export const ProgressProvider: React.FC<ProgressProviderProps> = ({ children }) 
     return true;
   };
 
+  // Add items to inventory
+  const addItems = (items: { [itemId: string]: number }) => {
+    setUserProgress(prev => {
+      const newItems = { ...(prev.inventory?.items || {}) };
+      
+      // Add items
+      for (const [itemId, quantity] of Object.entries(items)) {
+        newItems[itemId] = (newItems[itemId] || 0) + quantity;
+      }
+      
+      return {
+        ...prev,
+        inventory: {
+          ...prev.inventory,
+          items: newItems
+        }
+      };
+    });
+  };
+
   // Upgrade tree stage if requirements are met
   const upgradeStage = (stage: TreeStage): boolean => {
     if (!canUpgradeStage(stage)) {
@@ -116,6 +139,7 @@ export const ProgressProvider: React.FC<ProgressProviderProps> = ({ children }) 
 
       return {
         ...prev,
+        currentStage: stage,
         inventory: {
           ...prev.inventory,
           items: newItems,
@@ -394,7 +418,8 @@ export const ProgressProvider: React.FC<ProgressProviderProps> = ({ children }) 
     updateStreak,
     resetProgress,
     canUpgradeStage,
-    upgradeStage
+    upgradeStage,
+    addItems
   };
 
   return (

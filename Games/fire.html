@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔥 Fire Escape Game</title>
+    <style>
+        body {
+            margin: 0;
+            background: #0a0a0a;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #ecf0f1;
+            text-align: center;
+            overflow: hidden;
+            text-shadow: 1px 1px 3px black;
+        }
+        h1 {
+            font-size: 3em;
+            margin-top: 20px;
+            text-shadow: 0 0 15px #ff4500, 0 0 5px #ff4500;
+            letter-spacing: 2px;
+        }
+        p {
+            font-size: 1.1em;
+            color: #e67e22;
+        }
+        canvas {
+            background: linear-gradient(#1a1a1a, #000);
+            display: block;
+            margin: auto;
+            border: 5px solid #ff4500;
+            border-radius: 10px;
+            box-shadow: 0 0 40px #ff4500;
+            margin-top: 15px;
+        }
+        button {
+            margin-top: 25px;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            border: none;
+            border-radius: 50px;
+            background: #e74c3c;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 0 20px #e74c3c;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #c0392b;
+            transform: scale(1.05);
+            box-shadow: 0 0 30px #c0392b;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔥 Fire Escape</h1>
+    <p>Use ⬅️ ➡️ ⬆️ ⬇️ to move — Escape the burning building!</p>
+    <canvas id="gameCanvas" width="550" height="420"></canvas>
+    <button id="restartBtn" style="display:none;">🔄 Restart</button>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        const restartBtn = document.getElementById("restartBtn");
+
+        let player, exit, fireParticles, keys, gameOver, win;
+
+        // Fire particle class
+        class FireParticle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 10 + 5;
+                this.speedY = Math.random() * 2 + 1;
+                this.opacity = 1;
+                this.color = `hsl(${Math.random() * 60 + 20}, 100%, 50%)`;
+            }
+
+            update() {
+                this.y -= this.speedY;
+                this.size *= 0.98;
+                this.opacity -= 0.02;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 100, 0, ${this.opacity})`;
+                ctx.shadowColor = `rgba(255, 100, 0, ${this.opacity})`;
+                ctx.shadowBlur = 10;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        function initGame() {
+            player = { x: 20, y: 200, w: 30, h: 30, emoji: "🏃" };
+            exit = { x: 500, y: 160, w: 35, h: 100 };
+            fireParticles = [];
+            keys = {};
+            gameOver = false;
+            win = false;
+            restartBtn.style.display = "none";
+
+            // Spawn fire particles continuously
+            setInterval(() => {
+                if (!gameOver && !win) {
+                    for (let i = 0; i < 5; i++) {
+                        fireParticles.push(new FireParticle(Math.random() * canvas.width, canvas.height));
+                    }
+                }
+            }, 100);
+
+            gameLoop();
+        }
+
+        document.addEventListener("keydown", (e) => keys[e.code] = true);
+        document.addEventListener("keyup", (e) => keys[e.code] = false);
+        restartBtn.addEventListener("click", initGame);
+
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw and update fire particles
+            fireParticles.forEach((p, i) => {
+                p.update();
+                p.draw();
+                // Remove particles that have faded away
+                if (p.opacity <= 0) {
+                    fireParticles.splice(i, 1);
+                }
+            });
+
+            // Draw player
+            ctx.font = "28px Arial";
+            ctx.fillText(player.emoji, player.x, player.y + 25);
+
+            // Draw exit door
+            ctx.fillStyle = "#2ecc71";
+            ctx.shadowColor = "rgba(46, 204, 113, 0.8)";
+            ctx.shadowBlur = 20;
+            ctx.fillRect(exit.x, exit.y, exit.w, exit.h);
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = "white";
+            ctx.font = "35px Arial";
+            ctx.fillText("🚪", exit.x + 3, exit.y + 65);
+
+            // Player movement
+            const playerSpeed = 3;
+            if (keys["ArrowLeft"]) player.x -= playerSpeed;
+            if (keys["ArrowRight"]) player.x += playerSpeed;
+            if (keys["ArrowUp"]) player.y -= playerSpeed;
+            if (keys["ArrowDown"]) player.y += playerSpeed;
+
+            // Boundary check
+            player.x = Math.max(0, Math.min(canvas.width - player.w, player.x));
+            player.y = Math.max(0, Math.min(canvas.height - player.h, player.y));
+            
+            // Collision with fire particles
+            fireParticles.forEach(p => {
+                if (
+                    player.x < p.x + p.size &&
+                    player.x + player.w > p.x - p.size &&
+                    player.y < p.y + p.size &&
+                    player.y + player.h > p.y - p.size
+                ) {
+                    gameOver = true;
+                }
+            });
+
+            // Exit reached
+            if (
+                player.x > exit.x &&
+                player.x + player.w < exit.x + exit.w &&
+                player.y + player.h < exit.y + exit.h
+            ) {
+                win = true;
+            }
+
+            // Messages
+            if (win) {
+                ctx.fillStyle = "#2ecc71";
+                ctx.font = "35px 'Arial'";
+                ctx.fillText("✅ Escaped Safely!", canvas.width / 2, canvas.height / 2);
+                restartBtn.style.display = "inline-block";
+                return;
+            }
+
+            if (gameOver) {
+                ctx.fillStyle = "#e74c3c";
+                ctx.font = "35px 'Arial'";
+                ctx.fillText("🔥 Caught in Fire!", canvas.width / 2, canvas.height / 2);
+                restartBtn.style.display = "inline-block";
+                return;
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        initGame();
+    </script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,6 +15,11 @@ import {
   Gamepad2
 } from 'lucide-react';
 import { Game, Boss } from '@/data/rpgLessons';
+import WasteSortingGame from '@/components/games/WasteSortingGame';
+import TemperatureRisingGame from '@/components/games/TemperatureRisingGame';
+import GreenhouseGasPuzzle from '@/components/games/GreenhouseGasPuzzle';
+import HtmlGameWrapper from '@/components/games/HtmlGameWrapper';
+import { loadHtmlGame, getHtmlGameById } from '@/utils/gameLoader';
 
 interface GameModalProps {
   game: Game | Boss | null;
@@ -31,6 +36,10 @@ export default function GameModal({
   onComplete, 
   isCompleted 
 }: GameModalProps) {
+  const [showGame, setShowGame] = useState(false);
+  const [htmlGameContent, setHtmlGameContent] = useState<string>('');
+  const [isLoadingHtmlGame, setIsLoadingHtmlGame] = useState(false);
+  
   if (!game) return null;
 
   const isBoss = 'bossType' in game;
@@ -61,23 +70,91 @@ export default function GameModal({
     onComplete(game.id);
   };
 
+  const handleStartGame = () => {
+    setShowGame(true);
+  };
+
+  const handleGameComplete = (score: number, bonus: number) => {
+    setShowGame(false);
+    onComplete(game.id);
+  };
+
+  const handleGameClose = () => {
+    setShowGame(false);
+  };
+
+  const handleLoadHtmlGame = async () => {
+    if (!game) return;
+    
+    console.log('Loading HTML game:', game.id);
+    setIsLoadingHtmlGame(true);
+    try {
+      const content = await loadHtmlGame(game.id);
+      console.log('HTML content loaded, length:', content.length);
+      setHtmlGameContent(content);
+      setShowGame(true);
+      console.log('Game should now be visible');
+    } catch (error) {
+      console.error('Failed to load HTML game:', error);
+    } finally {
+      setIsLoadingHtmlGame(false);
+    }
+  };
+
+  const isHtmlGame = (gameId: string) => {
+    return ['fire-escape', 'cyclone-survival', 'earthquake-survival', 'fire-escape-game', 'flood-escape'].includes(gameId);
+  };
+
+  // Render specific interactive game
+  const renderInteractiveGame = () => {
+    if (!showGame) return null;
+
+    // Check if it's an HTML game
+    if (isHtmlGame(game.id)) {
+      return (
+        <HtmlGameWrapper
+          gameId={game.id}
+          title={game.title}
+          description={game.description}
+          htmlContent={htmlGameContent}
+          onComplete={handleGameComplete}
+          onClose={handleGameClose}
+          isCompleted={isCompleted}
+        />
+      );
+    }
+
+    // Render React games
+    switch (game.id) {
+      case 'waste-sorting-game':
+        return <WasteSortingGame onComplete={handleGameComplete} onClose={handleGameClose} />;
+      case 'warming-forest-game':
+        return <TemperatureRisingGame onComplete={handleGameComplete} onClose={handleGameClose} />;
+      case 'greenhouse-puzzle':
+        return <GreenhouseGasPuzzle onComplete={handleGameComplete} onClose={handleGameClose} />;
+      default:
+        return null;
+    }
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <div className="flex items-center gap-3">
-            {getGameTypeIcon(gameType)}
-            <div>
-              <DialogTitle className="text-2xl flex items-center gap-2">
-                {game.title}
-                {isBoss && <span className="text-purple-600">👑</span>}
-              </DialogTitle>
-              <DialogDescription className="text-base">
-                {game.description}
-              </DialogDescription>
+    <>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <div className="flex items-center gap-3">
+              {getGameTypeIcon(gameType)}
+              <div>
+                <DialogTitle className="text-2xl flex items-center gap-2">
+                  {game.title}
+                  {isBoss && <span className="text-purple-600">👑</span>}
+                </DialogTitle>
+                <DialogDescription className="text-base">
+                  {game.description}
+                </DialogDescription>
+              </div>
             </div>
-          </div>
-        </DialogHeader>
+          </DialogHeader>
 
         <div className="space-y-6">
           {/* Game Info */}
@@ -165,8 +242,8 @@ export default function GameModal({
             </CardContent>
           </Card>
 
-          {/* Game Placeholder */}
-          <Card className="bg-gradient-to-br from-blue-50 to-green-50 border-2 border-dashed border-blue-300">
+          {/* Game Area */}
+          <Card className="bg-gradient-to-br from-blue-50 to-green-50 border-2 border-blue-300">
             <CardContent className="pt-6 pb-6">
               <div className="text-center">
                 <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
@@ -181,12 +258,50 @@ export default function GameModal({
                     : 'Get ready to play this exciting environmental game!'
                   }
                 </p>
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <p className="text-sm text-yellow-800">
-                    <strong>Coming Soon!</strong> The actual game implementation will be added here. 
-                    For now, you can complete the game to earn rewards and progress.
-                  </p>
-                </div>
+                
+                {/* Check if we have an interactive game */}
+                {['waste-sorting-game', 'warming-forest-game', 'greenhouse-puzzle'].includes(game.id) ? (
+                  <div className="space-y-4">
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                      <p className="text-sm text-green-800 mb-3">
+                        <strong>Interactive Game Available!</strong> This game has been fully implemented with engaging gameplay.
+                      </p>
+                      <Button onClick={handleStartGame} className="bg-green-600 hover:bg-green-700">
+                        <Play className="w-4 h-4 mr-2" />
+                        Play Interactive Game
+                      </Button>
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      Or complete without playing to earn basic rewards
+                    </div>
+                  </div>
+                ) : isHtmlGame(game.id) ? (
+                  <div className="space-y-4">
+                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                      <p className="text-sm text-orange-800 mb-3">
+                        <strong>HTML Game Available!</strong> This is a full-featured survival game with immersive gameplay.
+                      </p>
+                      <Button 
+                        onClick={handleLoadHtmlGame} 
+                        disabled={isLoadingHtmlGame}
+                        className="bg-orange-600 hover:bg-orange-700"
+                      >
+                        <Play className="w-4 h-4 mr-2" />
+                        {isLoadingHtmlGame ? 'Loading...' : 'Play HTML Game'}
+                      </Button>
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      Or complete without playing to earn basic rewards
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <p className="text-sm text-yellow-800">
+                      <strong>Coming Soon!</strong> The interactive version of this game will be added soon. 
+                      For now, you can complete the game to earn rewards and progress.
+                    </p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -219,6 +334,10 @@ export default function GameModal({
           </div>
         </div>
       </DialogContent>
-    </Dialog>
+      </Dialog>
+      
+      {/* Render Interactive Game outside Dialog */}
+      {renderInteractiveGame()}
+    </>
   );
 }

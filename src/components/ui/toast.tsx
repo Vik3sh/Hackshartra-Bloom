@@ -5,6 +5,8 @@ import { X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
+// Toast component for shadcn/ui - updated to fix export issues
+
 const ToastProvider = ToastPrimitives.Provider
 
 const ToastViewport = React.forwardRef<
@@ -29,7 +31,7 @@ const toastVariants = cva(
       variant: {
         default: "border bg-background text-foreground",
         destructive:
-          "destructive group border-destructive bg-destructive text-destructive-foreground",
+          "destructive border-destructive bg-destructive text-destructive-foreground",
       },
     },
     defaultVariants: {

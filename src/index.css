@@ -1,9 +1,9 @@
+/* Import custom styles for authentic look */
+@import './styles/custom.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Import custom styles for authentic look */
-@import './styles/custom.css';
 
 /* Smooth scroll snapping for better UX */
 html {

@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🌪️ Cyclone Survival - Enhanced</title>
+  <style>
+    body {
+      margin: 0;
+      background: #34495e;
+      font-family: 'Press Start 2P', cursive;
+      color: white;
+      text-align: center;
+      overflow: hidden;
+    }
+    canvas {
+      background: linear-gradient(to bottom, #87CEEB, #4682B4);
+      display: block;
+      margin: auto;
+      border: 5px solid #ecf0f1;
+      border-radius: 15px;
+      margin-top: 15px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    }
+    button {
+      margin-top: 20px;
+      padding: 12px 25px;
+      font-size: 20px;
+      border: none;
+      border-radius: 10px;
+      background: #e74c3c;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 5px 0 #c0392b;
+      transition: all 0.2s ease;
+    }
+    button:hover {
+      background: #c0392b;
+      box-shadow: 0 2px 0 #a93226;
+      transform: translateY(3px);
+    }
+    h1 {
+      font-size: 3em;
+      text-shadow: 3px 3px #2c3e50;
+      margin-bottom: 10px;
+    }
+    p {
+      font-size: 1.2em;
+      margin-top: 5px;
+    }
+    .instructions {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(0,0,0,0.7);
+      padding: 10px;
+      border-radius: 5px;
+      font-size: 0.8em;
+      color: #fff;
+    }
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+  </style>
+</head>
+<body>
+  <h1>🌪️ Cyclone Survival</h1>
+  <p>Use ⬅️ ➡️ ⬆️ ⬇️ to move — Avoid debris and reach the shelter!</p>
+  <div class="instructions">
+    <div>🏃 Move with arrow keys</div>
+    <div>🌪️ Avoid falling debris</div>
+    <div>🏠 Reach the green shelter</div>
+  </div>
+  <canvas id="gameCanvas" width="500" height="400"></canvas>
+  <button id="restartBtn" style="display:none;">🔄 Restart</button>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const restartBtn = document.getElementById("restartBtn");
+
+    let player, shelter, debrisList, keys, gameOver, win, gameRunning;
+
+    function initGame() {
+      player = { 
+        x: 20, 
+        y: 180, 
+        w: 40, 
+        h: 40, 
+        emoji: "🏃",
+        speed: 1.0,
+        velocityX: 0,
+        velocityY: 0,
+        friction: 0.7,
+        acceleration: 0.2
+      };
+      shelter = { x: 400, y: 150, w: 80, h: 100 };
+      debrisList = [];
+      keys = {};
+      gameOver = false;
+      win = false;
+      gameRunning = true;
+      restartBtn.style.display = "none";
+
+      // Spawn debris with better timing
+      setInterval(() => {
+        if (gameRunning && !gameOver && !win) {
+          let size = Math.random() * 25 + 15;
+          let type = Math.floor(Math.random() * 3);
+          debrisList.push({
+            x: Math.random() * canvas.width,
+            y: -size,
+            w: size,
+            h: size,
+            speed: Math.random() * 3 + 2,
+            rotation: Math.random() * Math.PI * 2,
+            rotationSpeed: Math.random() * 0.1 - 0.05,
+            type: type
+          });
+        }
+      }, 600);
+
+      setupEventListeners();
+      gameLoop();
+    }
+
+    // Smooth movement with key states
+    function setupEventListeners() {
+      keys = {
+        up: false,
+        down: false,
+        left: false,
+        right: false
+      };
+
+      const handleKeyDown = (e) => {
+        if (!gameRunning) return;
+        
+        switch(e.key) {
+          case 'ArrowUp':
+            e.preventDefault();
+            keys.up = true;
+            break;
+          case 'ArrowDown':
+            e.preventDefault();
+            keys.down = true;
+            break;
+          case 'ArrowLeft':
+            e.preventDefault();
+            keys.left = true;
+            break;
+          case 'ArrowRight':
+            e.preventDefault();
+            keys.right = true;
+            break;
+        }
+      };
+
+      const handleKeyUp = (e) => {
+        if (!gameRunning) return;
+        
+        switch(e.key) {
+          case 'ArrowUp':
+            e.preventDefault();
+            keys.up = false;
+            break;
+          case 'ArrowDown':
+            e.preventDefault();
+            keys.down = false;
+            break;
+          case 'ArrowLeft':
+            e.preventDefault();
+            keys.left = false;
+            break;
+          case 'ArrowRight':
+            e.preventDefault();
+            keys.right = false;
+            break;
+        }
+      };
+
+      // Direct keyboard events
+      document.addEventListener('keydown', handleKeyDown);
+      document.addEventListener('keyup', handleKeyUp);
+      
+      // Forwarded keyboard events from parent
+      window.addEventListener('message', (event) => {
+        if (event.data.type === 'KEYBOARD_EVENT') {
+          if (event.data.key.startsWith('Arrow')) {
+            const keyName = event.data.key.replace('Arrow', '').toLowerCase();
+            if (['up', 'down', 'left', 'right'].includes(keyName)) {
+              keys[keyName] = true;
+              setTimeout(() => keys[keyName] = false, 100);
+            }
+          }
+        }
+      });
+    }
+
+    function drawDebris(d) {
+      ctx.save();
+      ctx.translate(d.x + d.w / 2, d.y + d.h / 2);
+      ctx.rotate(d.rotation);
+      ctx.fillStyle = "#7f8c8d";
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+      ctx.shadowBlur = 5;
+
+      if (d.type === 0) { // Square
+        ctx.fillRect(-d.w / 2, -d.h / 2, d.w, d.h);
+      } else if (d.type === 1) { // Circle
+        ctx.beginPath();
+        ctx.arc(0, 0, d.w / 2, 0, Math.PI * 2);
+        ctx.fill();
+      } else { // Triangle
+        ctx.beginPath();
+        ctx.moveTo(0, -d.h / 2);
+        ctx.lineTo(d.w / 2, d.h / 2);
+        ctx.lineTo(-d.w / 2, d.h / 2);
+        ctx.closePath();
+        ctx.fill();
+      }
+      ctx.shadowBlur = 0;
+      ctx.restore();
+    }
+
+    let lastTime = 0;
+    const targetFPS = 60;
+    const frameTime = 1000 / targetFPS;
+
+    function gameLoop(currentTime) {
+      if (currentTime - lastTime < frameTime) {
+        requestAnimationFrame(gameLoop);
+        return;
+      }
+      lastTime = currentTime;
+      
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw background grid
+      ctx.strokeStyle = 'rgba(135, 206, 235, 0.1)';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < canvas.width; x += 25) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+      for (let y = 0; y < canvas.height; y += 25) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+
+      // Draw shelter with enhanced visuals
+      ctx.fillStyle = "#c0392b";
+      ctx.beginPath();
+      ctx.moveTo(shelter.x - 10, shelter.y);
+      ctx.lineTo(shelter.x + shelter.w / 2, shelter.y - 40);
+      ctx.lineTo(shelter.x + shelter.w + 10, shelter.y);
+      ctx.closePath();
+      ctx.fill();
+      
+      ctx.fillStyle = "#27ae60";
+      ctx.fillRect(shelter.x, shelter.y, shelter.w, shelter.h);
+
+      // Add door
+      ctx.fillStyle = "#8B4513";
+      ctx.fillRect(shelter.x + shelter.w / 2 - 10, shelter.y + shelter.h * 0.6, 20, shelter.h * 0.4);
+      
+      // Add windows
+      ctx.fillStyle = "#add8e6";
+      ctx.fillRect(shelter.x + 10, shelter.y + 20, 25, 25);
+      ctx.fillRect(shelter.x + shelter.w - 35, shelter.y + 20, 25, 25);
+
+      // Smooth player movement with acceleration
+      if (keys.left) {
+        player.velocityX -= player.acceleration;
+        if (player.velocityX < -player.speed) player.velocityX = -player.speed;
+      } else if (keys.right) {
+        player.velocityX += player.acceleration;
+        if (player.velocityX > player.speed) player.velocityX = player.speed;
+      } else {
+        player.velocityX *= player.friction;
+      }
+      
+      if (keys.up) {
+        player.velocityY -= player.acceleration;
+        if (player.velocityY < -player.speed) player.velocityY = -player.speed;
+      } else if (keys.down) {
+        player.velocityY += player.acceleration;
+        if (player.velocityY > player.speed) player.velocityY = player.speed;
+      } else {
+        player.velocityY *= player.friction;
+      }
+      
+      // Apply velocity
+      player.x += player.velocityX;
+      player.y += player.velocityY;
+
+      // Boundaries
+      player.x = Math.max(0, Math.min(canvas.width - player.w, player.x));
+      player.y = Math.max(0, Math.min(canvas.height - player.h, player.y));
+
+      // Draw player
+      ctx.font = `${player.w - 5}px Arial`;
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+      ctx.shadowBlur = 8;
+      ctx.fillText(player.emoji, player.x, player.y + player.h - 5);
+      ctx.shadowBlur = 0;
+
+      // Update and draw debris
+      debrisList.forEach((d, i) => {
+        d.y += d.speed;
+        d.rotation += d.rotationSpeed;
+        drawDebris(d);
+
+        // Collision with player
+        if (player.x < d.x + d.w &&
+            player.x + player.w > d.x &&
+            player.y < d.y + d.h &&
+            player.y + player.h > d.y) {
+          gameOver = true;
+        }
+
+        // Remove debris that leaves screen
+        if (d.y > canvas.height) debrisList.splice(i, 1);
+      });
+
+      // Check win condition
+      if (player.x + player.w > shelter.x + 10 &&
+          player.x < shelter.x + shelter.w - 10 &&
+          player.y + player.h > shelter.y + shelter.h * 0.6 &&
+          player.y < shelter.y + shelter.h) {
+        win = true;
+      }
+
+      // Game messages
+      if (win) {
+        gameRunning = false;
+        ctx.fillStyle = "#2ecc71";
+        ctx.font = "30px 'Press Start 2P'";
+        ctx.shadowColor = 'black';
+        ctx.shadowBlur = 5;
+        ctx.textAlign = "center";
+        ctx.fillText("✅ Safe inside shelter!", canvas.width / 2, canvas.height / 2);
+        ctx.textAlign = "left";
+        restartBtn.style.display = "inline-block";
+        return;
+      }
+
+      if (gameOver) {
+        gameRunning = false;
+        ctx.fillStyle = "#e74c3c";
+        ctx.font = "30px 'Press Start 2P'";
+        ctx.shadowColor = 'black';
+        ctx.shadowBlur = 5;
+        ctx.textAlign = "center";
+        ctx.fillText("💀 Hit by flying debris!", canvas.width / 2, canvas.height / 2);
+        ctx.textAlign = "left";
+        restartBtn.style.display = "inline-block";
+        return;
+      }
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    // Initialize
+    document.addEventListener("DOMContentLoaded", initGame);
+    restartBtn.addEventListener("click", initGame);
+  </script>
+</body>
+</html>
