@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -6,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Bell, User, Sun, Moon, Settings, UserCircle, Camera, Upload, X, Check, CheckCheck, AlertCircle, Info, Award } from 'lucide-react';
+import { Bell, User, Sun, Moon, Settings, UserCircle, Camera, Upload, X, Check, CheckCheck, AlertCircle, Info, Award, Home } from 'lucide-react';
 
 interface TopNavigationBarProps {
   isDarkMode: boolean;
@@ -264,15 +265,29 @@ const TopNavigationBar: React.FC<TopNavigationBarProps> = ({
     <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-slate-200'} backdrop-blur-md shadow-lg border-b px-4 py-2 sticky top-0 z-50 transition-colors duration-300`}>
       <div className="w-full flex justify-between items-center">
         <div className="flex items-center space-x-2">
-          <div className="w-6 h-6 bg-gradient-to-r from-blue-600 to-purple-600 rounded-md flex items-center justify-center">
-            <span className="text-white font-bold text-xs">AH</span>
-          </div>
-          <h2 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-            {isStudent ? 'Academic Hub' : 'Faculty Dashboard'}
-          </h2>
+          <Link to="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
+            <div className="w-6 h-6 bg-gradient-to-r from-blue-600 to-green-600 rounded-md flex items-center justify-center">
+              <span className="text-white font-bold text-xs">E</span>
+            </div>
+            <h2 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+              EcoLearn
+            </h2>
+          </Link>
         </div>
         
         <div className="flex items-center space-x-3">
+          {/* Dashboard Link */}
+          <Link to="/dashboard">
+            <Button
+              variant="ghost"
+              size="sm"
+              className={`h-9 px-3 ${isDarkMode ? 'text-white hover:bg-gray-700' : 'text-slate-700 hover:bg-gray-100'}`}
+            >
+              <Home className="h-4 w-4 mr-2" />
+              Dashboard
+            </Button>
+          </Link>
+
           {/* Dark Mode Toggle */}
           <Button
             variant="ghost"

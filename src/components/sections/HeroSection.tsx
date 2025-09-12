@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import { ChevronDown } from 'lucide-react';
 
 interface HeroSectionProps {
   isDarkMode: boolean;
@@ -65,6 +66,16 @@ const HeroSection: React.FC<HeroSectionProps> = ({
               <p className={`text-lg ${isDarkMode ? 'text-blue-200' : 'text-blue-700'}`}>
                 Scroll down to explore environmental learning topics
               </p>
+              <div className="flex justify-center">
+                <Button
+                  onClick={() => document.getElementById('categories-page')?.scrollIntoView({ behavior: 'smooth' })}
+                  variant="outline"
+                  size="lg"
+                  className="bg-white/80 hover:bg-white text-blue-600 border-blue-300 hover:border-blue-400"
+                >
+                  Explore Topics
+                </Button>
+              </div>
             </div>
           ) : (
             <div className="space-y-4">
@@ -76,9 +87,31 @@ const HeroSection: React.FC<HeroSectionProps> = ({
               <p className={`text-sm ${isDarkMode ? 'text-blue-300' : 'text-blue-600'}`}>
                 Sign up to access personalized environmental education
               </p>
+              <div className="flex justify-center">
+                <Button
+                  onClick={() => document.getElementById('categories-page')?.scrollIntoView({ behavior: 'smooth' })}
+                  variant="outline"
+                  size="lg"
+                  className="bg-white/80 hover:bg-white text-blue-600 border-blue-300 hover:border-blue-400"
+                >
+                  Explore Topics
+                </Button>
+              </div>
             </div>
           )}
         </div>
+      </div>
+      
+      {/* Scroll Indicator */}
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+        <Button
+          onClick={() => document.getElementById('categories-page')?.scrollIntoView({ behavior: 'smooth' })}
+          variant="ghost"
+          size="sm"
+          className="text-blue-600 hover:text-blue-700 hover:bg-white/20"
+        >
+          <ChevronDown className="h-6 w-6" />
+        </Button>
       </div>
     </div>
   );
