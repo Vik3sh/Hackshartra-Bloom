@@ -1,0 +1,397 @@
+/* Custom styles to make the app look more authentic and less AI-generated */
+
+/* Custom font imports for a more personal feel */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
+
+/* Root variables for consistent theming */
+:root {
+  --primary-green: #059669;
+  --secondary-green: #10b981;
+  --accent-blue: #3b82f6;
+  --warm-orange: #f59e0b;
+  --punjab-gold: #d97706;
+  --punjab-green: #16a34a;
+  --punjab-blue: #2563eb;
+}
+
+/* Custom animations for a more organic feel */
+@keyframes gentle-float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes leaf-sway {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(2deg); }
+  75% { transform: rotate(-2deg); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 5px rgba(16, 185, 129, 0.3); }
+  50% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.6); }
+}
+
+/* Custom button styles */
+.custom-button {
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.custom-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s;
+}
+
+.custom-button:hover::before {
+  left: 100%;
+}
+
+/* Custom card styles */
+.custom-card {
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.custom-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--punjab-green), var(--punjab-blue), var(--punjab-gold));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.custom-card:hover::before {
+  opacity: 1;
+}
+
+.custom-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Custom tree animation */
+.tree-float {
+  animation: gentle-float 3s ease-in-out infinite;
+}
+
+.leaf-sway {
+  animation: leaf-sway 2s ease-in-out infinite;
+}
+
+/* Custom progress bar */
+.custom-progress {
+  background: linear-gradient(90deg, var(--punjab-green), var(--punjab-blue));
+  border-radius: 10px;
+  height: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.custom-progress::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Custom typography */
+.custom-heading {
+  font-family: 'Playfair Display', serif;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.custom-body {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+/* Custom emoji styling */
+.emoji-large {
+  font-size: 2.5rem;
+  line-height: 1;
+  display: inline-block;
+  animation: gentle-float 4s ease-in-out infinite;
+}
+
+.emoji-medium {
+  font-size: 1.5rem;
+  line-height: 1;
+  display: inline-block;
+}
+
+/* Custom badge styles */
+.custom-badge {
+  border-radius: 20px;
+  font-weight: 500;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.75rem;
+  border: 1px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.custom-badge:hover {
+  transform: scale(1.05);
+}
+
+/* Custom input styles */
+.custom-input {
+  border-radius: 12px;
+  border: 2px solid #e5e7eb;
+  transition: all 0.3s ease;
+  font-family: 'Inter', sans-serif;
+}
+
+.custom-input:focus {
+  border-color: var(--punjab-green);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+/* Custom tab styles */
+.custom-tab {
+  border-radius: 12px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.custom-tab[data-state="active"] {
+  background: linear-gradient(135deg, var(--punjab-green), var(--punjab-blue));
+  color: white;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+/* Custom loading animation */
+.custom-loading {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid var(--punjab-green);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Custom gradient backgrounds */
+.gradient-punjab {
+  background: linear-gradient(135deg, var(--punjab-green), var(--punjab-blue), var(--punjab-gold));
+}
+
+.gradient-eco {
+  background: linear-gradient(135deg, #10b981, #3b82f6, #f59e0b);
+}
+
+/* Custom shadow styles */
+.shadow-eco {
+  box-shadow: 0 10px 25px -3px rgba(16, 185, 129, 0.1), 0 4px 6px -2px rgba(16, 185, 129, 0.05);
+}
+
+.shadow-punjab {
+  box-shadow: 0 10px 25px -3px rgba(37, 99, 235, 0.1), 0 4px 6px -2px rgba(37, 99, 235, 0.05);
+}
+
+/* Custom hover effects */
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Custom text effects */
+.text-gradient {
+  background: linear-gradient(135deg, var(--punjab-green), var(--punjab-blue));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-shadow {
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Custom spacing utilities */
+.space-y-custom > * + * {
+  margin-top: 1.5rem;
+}
+
+/* Custom border styles */
+.border-eco {
+  border: 2px solid var(--punjab-green);
+}
+
+.border-punjab {
+  border: 2px solid var(--punjab-blue);
+}
+
+/* Custom focus styles */
+.focus-eco:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+}
+
+/* Custom scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--punjab-green);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--secondary-green);
+}
+
+/* Custom responsive design */
+@media (max-width: 768px) {
+  .emoji-large {
+    font-size: 2rem;
+  }
+  
+  .custom-heading {
+    font-size: 1.5rem;
+  }
+  
+  .custom-card {
+    border-radius: 12px;
+  }
+}
+
+/* 3D Navigation Bar Effects */
+.navbar-3d {
+  transform: perspective(1000px) rotateX(5deg);
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.15),
+    0 15px 30px rgba(0, 0, 0, 0.1),
+    0 5px 15px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  position: relative;
+}
+
+.navbar-3d::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* Enhanced shadow for 3D effect */
+.navbar-shadow {
+  box-shadow: 
+    0 30px 60px rgba(0, 0, 0, 0.2),
+    0 20px 40px rgba(0, 0, 0, 0.15),
+    0 10px 20px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+/* Curved edges with more pronounced effect */
+.navbar-curved {
+  border-radius: 24px;
+  position: relative;
+}
+
+.navbar-curved::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.1));
+  border-radius: 26px;
+  z-index: -1;
+  opacity: 0.6;
+}
+
+/* Parallax scrolling effect */
+.parallax-container {
+  position: relative;
+  overflow-x: hidden;
+}
+
+.parallax-content {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Floating navigation animation */
+@keyframes navbar-float {
+  0%, 100% { 
+    transform: perspective(1000px) rotateX(5deg) translateY(0px);
+  }
+  50% { 
+    transform: perspective(1000px) rotateX(5deg) translateY(-2px);
+  }
+}
+
+.navbar-floating {
+  animation: navbar-float 6s ease-in-out infinite;
+}
+
+/* Enhanced backdrop blur */
+.navbar-glass {
+  backdrop-filter: blur(20px) saturate(180%);
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Custom print styles */
+@media print {
+  .custom-card {
+    box-shadow: none;
+    border: 1px solid #e5e7eb;
+  }
+  
+  .custom-button {
+    background: #f3f4f6 !important;
+    color: #374151 !important;
+  }
+}
