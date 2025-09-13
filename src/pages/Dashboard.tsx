@@ -38,6 +38,7 @@ import { LessonQuest, LessonBoss } from '@/data/lessonQuests';
 import { useProgress } from '@/contexts/ProgressContext';
 import { useLessonProgression } from '@/contexts/LessonProgressionContext';
 import { useToast } from '@/contexts/ToastContext';
+import Logo from "/assets/earth.png"
 
 const AvatarStack: React.FC<{ names: string[] }> = ({ names }) => (
   <div className="flex -space-x-2">
@@ -76,7 +77,7 @@ const ActivityBars: React.FC = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <PlayCircle className="h-4 w-4 text-slate-600" />
-                <span>EcoEdu platform</span>
+                <span>Bloom</span>
               </div>
               <span className="text-slate-600">12.5 h</span>
             </div>
@@ -473,15 +474,16 @@ const Dashboard: React.FC = () => {
         <div className="w-full px-4 py-4">
           <div className="flex items-center justify-between">
             {/* Logo Section */}
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">E</span>
-              </div>
-              <h1 className="text-xl font-semibold text-gray-800">
-                EcoEdu Punjab
-              </h1>
-            </div>
-
+           <div className="flex items-center space-x-3">
+        <img
+          src={Logo}
+          alt="Logo"
+          className="w-8 h-8 rounded-lg object-contain"
+        />
+        <h1 className="text-xl font-semibold text-gray-800">
+          Bloom
+        </h1>
+    </div>
             {/* Centered Navigation */}
             <div className="flex-1 flex justify-center">
               <Tabs value={activeTab} onValueChange={setActiveTab}>
