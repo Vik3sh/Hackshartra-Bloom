@@ -282,9 +282,9 @@ const SimpleEnhancedDashboard: React.FC<SimpleEnhancedDashboardProps> = ({ userP
           </Card>
         </div>
 
-        {/* Community Posts Section - Fills remaining space */}
-        <div className="mt-4">
-          <Card className="rounded-2xl border-0 shadow-lg bg-gradient-to-br from-blue-50 to-indigo-50 h-[515px]">
+                {/* Community Posts Section - Fills remaining space */}
+                <div className="mt-4">
+                  <Card className="rounded-2xl border-0 shadow-lg bg-gradient-to-br from-blue-50 to-indigo-50 h-[605px]">
             <CardContent className="p-4 h-full flex flex-col">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">

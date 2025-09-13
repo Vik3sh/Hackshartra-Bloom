@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Lock, Clock, Star, Trophy, Camera, CheckCircle, Play } from 'lucide-react';
+import { Lock, Clock, Star, Trophy, Camera, CheckCircle, Play, Trash2, Zap, Droplets, Leaf, Globe, Home, Sprout } from 'lucide-react';
 import { Challenge } from '@/data/challenges';
 
 interface ChallengeCardProps {
@@ -24,13 +24,13 @@ const getDifficultyColor = (difficulty: string) => {
 
 const getCategoryIcon = (category: string) => {
   switch (category) {
-    case 'waste': return '🗑️';
-    case 'energy': return '⚡';
-    case 'water': return '💧';
-    case 'biodiversity': return '🌿';
-    case 'climate': return '🌍';
-    case 'lifestyle': return '🏠';
-    default: return '🌱';
+    case 'waste': return <Trash2 className="w-5 h-5" />;
+    case 'energy': return <Zap className="w-5 h-5" />;
+    case 'water': return <Droplets className="w-5 h-5" />;
+    case 'biodiversity': return <Leaf className="w-5 h-5" />;
+    case 'climate': return <Globe className="w-5 h-5" />;
+    case 'lifestyle': return <Home className="w-5 h-5" />;
+    default: return <Sprout className="w-5 h-5" />;
   }
 };
 
@@ -60,19 +60,19 @@ export default function ChallengeCard({ challenge, onStart, onComplete, userLeve
 
   const getTreeRewardsText = () => {
     const rewards = [];
-    if (challenge.treeRewards.seed) rewards.push(`${challenge.treeRewards.seed} 🌱`);
-    if (challenge.treeRewards.water) rewards.push(`${challenge.treeRewards.water} 💧`);
-    if (challenge.treeRewards.sunlight) rewards.push(`${challenge.treeRewards.sunlight} ☀️`);
-    if (challenge.treeRewards.nutrients) rewards.push(`${challenge.treeRewards.nutrients} 🌿`);
-    if (challenge.treeRewards.fertilizer) rewards.push(`${challenge.treeRewards.fertilizer} 🧪`);
-    if (challenge.treeRewards.love) rewards.push(`${challenge.treeRewards.love} ❤️`);
+    if (challenge.treeRewards.seed) rewards.push(`${challenge.treeRewards.seed} Seeds`);
+    if (challenge.treeRewards.water) rewards.push(`${challenge.treeRewards.water} Water`);
+    if (challenge.treeRewards.sunlight) rewards.push(`${challenge.treeRewards.sunlight} Sunlight`);
+    if (challenge.treeRewards.nutrients) rewards.push(`${challenge.treeRewards.nutrients} Nutrients`);
+    if (challenge.treeRewards.fertilizer) rewards.push(`${challenge.treeRewards.fertilizer} Fertilizer`);
+    if (challenge.treeRewards.love) rewards.push(`${challenge.treeRewards.love} Love`);
     return rewards.join(' ');
   };
 
   const isComingSoon = challenge.tags.includes('coming-soon');
 
   return (
-    <Card className={`relative overflow-hidden transition-all duration-300 hover:shadow-lg ${
+    <Card className={`relative overflow-hidden transition-all duration-300 hover:shadow-lg rounded-2xl border-0 shadow-lg bg-gradient-to-br from-white to-gray-50 ${
       challenge.isLocked ? 'opacity-60' : 'hover:scale-105'
     } ${challenge.isCompleted ? 'ring-2 ring-green-500' : ''} ${isComingSoon ? 'ring-2 ring-yellow-300' : ''}`}>
       {challenge.isCompleted && (
@@ -201,9 +201,4 @@ export default function ChallengeCard({ challenge, onStart, onComplete, userLeve
                 Start Challenge
               </Button>
             )}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
+       

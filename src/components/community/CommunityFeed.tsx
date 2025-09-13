@@ -5,7 +5,6 @@ import StoriesBar from './StoriesBar';
 import CommunityRightSidebar from './CommunityRightSidebar';
 import StoryViewer from './StoryViewer';
 import MessagesModal from './MessagesModal';
-import AddUsersToFirebase from '../AddUsersToFirebase';
 import { useCommunity } from '@/contexts/CommunityContext';
 
 const CommunityFeed: React.FC = () => {
@@ -32,14 +31,6 @@ const CommunityFeed: React.FC = () => {
           <StoriesBar onSelect={(id) => { setViewerStart(id); setViewerOpen(true); }} />
           <CreatePost />
           
-          {/* Add Users to Firebase - Remove after adding users */}
-          <div className="border-2 border-dashed border-green-300 rounded-lg p-4 bg-green-50">
-            <h3 className="text-lg font-semibold text-green-800 mb-2">👥 Add Your Users to Firebase</h3>
-            <p className="text-sm text-green-700 mb-4">
-              Add your two users to Firebase so they can discover and chat with each other.
-            </p>
-            <AddUsersToFirebase />
-          </div>
           
           {feed.length === 0 ? (
             <div className="text-center text-muted-foreground py-12">No posts yet. Be the first to share your eco-action!</div>

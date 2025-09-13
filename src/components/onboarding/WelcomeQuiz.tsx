@@ -90,13 +90,15 @@ const WelcomeQuiz: React.FC<WelcomeQuizProps> = ({ onComplete }) => {
       toast({
         title: 'Correct! 🎉',
         description: question.explanation,
-        variant: 'default'
+        variant: 'default',
+        duration: 2000
       });
     } else {
       toast({
         title: 'Not quite right',
         description: question.explanation,
-        variant: 'destructive'
+        variant: 'destructive',
+        duration: 2000
       });
     }
 
@@ -115,7 +117,8 @@ const WelcomeQuiz: React.FC<WelcomeQuizProps> = ({ onComplete }) => {
       toast({
         title: 'Welcome Quiz Complete! 🌱',
         description: 'You earned your first seed! Now learn how to get more items.',
-        variant: 'success'
+        variant: 'success',
+        duration: 2000
       });
     }
   };

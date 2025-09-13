@@ -12,6 +12,7 @@ import HomePage from "./pages/HomePage";
 import Dashboard from "./pages/Dashboard";
 import Community from "./pages/Community";
 import NotFound from "./pages/NotFound";
+import AuthPage from "./components/auth/AuthPage";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,7 @@ const App = () => {
                 <BrowserRouter>
                       <Routes>
                         <Route path="/" element={<HomePage />} />
+                        <Route path="/auth" element={<AuthPage />} />
                         <Route path="/dashboard" element={<Dashboard />} />
                         <Route path="/community" element={<Community />} />
                         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
