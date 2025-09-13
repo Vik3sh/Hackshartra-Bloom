@@ -186,6 +186,22 @@ const TemperatureRisingGame: React.FC<TemperatureRisingGameProps> = ({ onComplet
                 <span>0°C</span>
                 <span>50°C</span>
               </div>
+              {/* Primary range input */}
+              <input
+                type="range"
+                min="0"
+                max="50"
+                value={temperature}
+                onChange={(e) => {
+                  console.log('Range input changed:', e.target.value);
+                  setTemperature(Number(e.target.value));
+                }}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                style={{
+                  background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(temperature / 50) * 100}%, #e5e7eb ${(temperature / 50) * 100}%, #e5e7eb 100%)`
+                }}
+              />
+              {/* Radix Slider as backup */}
               <Slider
                 value={[temperature]}
                 onValueChange={handleTemperatureChange}
@@ -194,15 +210,33 @@ const TemperatureRisingGame: React.FC<TemperatureRisingGameProps> = ({ onComplet
                 step={1}
                 className="w-full"
               />
-              {/* Fallback range input */}
-              <input
-                type="range"
-                min="0"
-                max="50"
-                value={temperature}
-                onChange={(e) => setTemperature(Number(e.target.value))}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-              />
+              {/* Quick temperature buttons */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setTemperature(0)}
+                  className="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                >
+                  0°C
+                </button>
+                <button
+                  onClick={() => setTemperature(20)}
+                  className="px-3 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200"
+                >
+                  20°C
+                </button>
+                <button
+                  onClick={() => setTemperature(30)}
+                  className="px-3 py-1 bg-orange-100 text-orange-700 rounded hover:bg-orange-200"
+                >
+                  30°C
+                </button>
+                <button
+                  onClick={() => setTemperature(50)}
+                  className="px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200"
+                >
+                  50°C
+                </button>
+              </div>
               {/* Debug input */}
               <div className="flex items-center gap-2">
                 <label className="text-sm">Manual input:</label>
