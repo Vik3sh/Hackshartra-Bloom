@@ -30,7 +30,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Listen to Supabase auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('🔄 Supabase auth state changed:', event);
+        console.log('🔄 Supabase auth state changed:', event, session?.user?.id);
         setUser(session?.user ?? null);
         setLoading(false);
       }

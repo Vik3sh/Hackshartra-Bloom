@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -75,6 +74,7 @@ const GreenhouseGasPuzzle: React.FC<GreenhouseGasPuzzleProps> = ({ onComplete, o
       setGameState('gameOver');
     }
   }, [timeLeft, gameState]);
+
 
   // Check if puzzle is complete
   useEffect(() => {
@@ -153,7 +153,7 @@ const GreenhouseGasPuzzle: React.FC<GreenhouseGasPuzzleProps> = ({ onComplete, o
   };
 
   if (gameState === 'completed' || gameState === 'gameOver') {
-    return createPortal(
+    return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" style={{ zIndex: 99999 }}>
         <Card className="w-full max-w-md mx-4">
           <CardHeader className="text-center">
@@ -201,7 +201,7 @@ const GreenhouseGasPuzzle: React.FC<GreenhouseGasPuzzleProps> = ({ onComplete, o
     );
   }
 
-  return createPortal(
+  return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" style={{ zIndex: 99999 }}>
       <Card className="w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
         <CardHeader className="text-center">

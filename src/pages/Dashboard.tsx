@@ -762,8 +762,8 @@ const Dashboard: React.FC = () => {
           <DevModeTest />
           <GameTest />
         </div>
-    </div>
-  );
-};
+      </div>
+    );
+  };
 
-export default Dashboard;
+  export default Dashboard;

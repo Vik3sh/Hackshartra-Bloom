@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -74,6 +73,7 @@ const WasteSortingGame: React.FC<WasteSortingGameProps> = ({ onComplete, onClose
     setCurrentItems(shuffled.slice(0, 15)); // 15 items to sort for better pacing
   }, []);
 
+
   // Timer
   useEffect(() => {
     if (gameState === 'playing' && timeLeft > 0) {
@@ -131,7 +131,7 @@ const WasteSortingGame: React.FC<WasteSortingGameProps> = ({ onComplete, onClose
   const currentItem = currentItems[currentItemIndex];
 
   if (gameState === 'completed' || gameState === 'gameOver') {
-    return createPortal(
+    return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" style={{ zIndex: 99999 }}>
         <Card className="w-full max-w-md mx-4">
           <CardHeader className="text-center">
@@ -187,7 +187,7 @@ const WasteSortingGame: React.FC<WasteSortingGameProps> = ({ onComplete, onClose
     );
   }
 
-  return createPortal(
+  return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" style={{ zIndex: 99999 }}>
       <Card className="w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
         <CardHeader className="text-center">

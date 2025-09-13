@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal } from 'lucide-react';
+import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal, MessageSquare } from 'lucide-react';
 import { PostItem } from '@/contexts/CommunityContext';
 import { useCommunity } from '@/contexts/CommunityContext';
 
@@ -19,11 +19,16 @@ const timeAgoFromISO = (iso: string) => {
 
 const STORAGE_BOOKMARKS = 'communityBookmarks_v1';
 
-const PostCard: React.FC<{ post: PostItem }> = ({ post }) => {
+const PostCard: React.FC<{ post: PostItem; onMessageUser?: (userId: string) => void }> = ({ post, onMessageUser }) => {
   const { likePost, unlikePost, addComment, currentUser } = useCommunity();
   const [comment, setComment] = useState('');
   const [showComments, setShowComments] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
+
+  // Add safety checks for post and post.user
+  if (!post || !post.user) {
+    return null; // Don't render if post or user data is missing
+  }
 
   useEffect(() => {
     try {
@@ -75,9 +80,21 @@ const PostCard: React.FC<{ post: PostItem }> = ({ post }) => {
             <div className="text-[10px] text-muted-foreground">{timeAgoFromISO(post.createdAt)}</div>
           </div>
         </div>
-        <button className="p-1 rounded hover:bg-slate-100" aria-label="More">
-          <MoreHorizontal className="h-5 w-5 text-slate-600" />
-        </button>
+        <div className="flex items-center gap-1">
+          {post.user.id !== currentUser?.id && onMessageUser && (
+            <button 
+              onClick={() => onMessageUser(post.user.id)} 
+              className="p-1 rounded hover:bg-slate-100" 
+              aria-label="Message user"
+              title="Send a message"
+            >
+              <MessageSquare className="h-5 w-5 text-slate-600" />
+            </button>
+          )}
+          <button className="p-1 rounded hover:bg-slate-100" aria-label="More">
+            <MoreHorizontal className="h-5 w-5 text-slate-600" />
+          </button>
+        </div>
       </div>
 
       {/* Media */}
@@ -148,11 +165,11 @@ const PostCard: React.FC<{ post: PostItem }> = ({ post }) => {
             {post.comments.map(c => (
               <div key={c.id} className="flex items-start gap-2">
                 <Avatar className="h-6 w-6">
-                  <AvatarImage src={c.user.avatarUrl || undefined} />
-                  <AvatarFallback>{c.user.name.charAt(0)}</AvatarFallback>
+                  <AvatarImage src={c.user?.avatarUrl || undefined} />
+                  <AvatarFallback>{c.user?.name?.charAt(0) || '?'}</AvatarFallback>
                 </Avatar>
                 <div className="text-sm">
-                  <span className="font-semibold mr-1">{c.user.name}</span>
+                  <span className="font-semibold mr-1">{c.user?.name || 'Unknown User'}</span>
                   <span>{c.text}</span>
                   <div className="text-[10px] text-muted-foreground">{timeAgoFromISO(c.createdAt)}</div>
                 </div>

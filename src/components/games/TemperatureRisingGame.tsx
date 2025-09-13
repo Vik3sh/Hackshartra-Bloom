@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -72,6 +71,7 @@ const TemperatureRisingGame: React.FC<TemperatureRisingGameProps> = ({ onComplet
     );
   }, [temperature]);
 
+
   // Calculate score based on comfortable animals
   useEffect(() => {
     const comfortableCount = animals.filter(animal => animal.isComfortable).length;
@@ -80,6 +80,7 @@ const TemperatureRisingGame: React.FC<TemperatureRisingGameProps> = ({ onComplet
   }, [animals, gameTime, gameDuration]);
 
   const handleTemperatureChange = (value: number[]) => {
+    console.log('Temperature slider changed:', value);
     setTemperature(value[0]);
   };
 
@@ -105,7 +106,7 @@ const TemperatureRisingGame: React.FC<TemperatureRisingGameProps> = ({ onComplet
   };
 
   if (gameState === 'completed' || gameState === 'gameOver') {
-    return createPortal(
+    return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" style={{ zIndex: 99999 }}>
         <Card className="w-full max-w-md mx-4">
           <CardHeader className="text-center">
@@ -142,12 +143,11 @@ const TemperatureRisingGame: React.FC<TemperatureRisingGameProps> = ({ onComplet
             </div>
           </CardContent>
         </Card>
-      </div>,
-      document.body
+      </div>
     );
   }
 
-  return createPortal(
+  return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" style={{ zIndex: 99999 }}>
       <Card className="w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
         <CardHeader className="text-center">
@@ -174,6 +174,7 @@ const TemperatureRisingGame: React.FC<TemperatureRisingGameProps> = ({ onComplet
                 <span className={`text-2xl font-bold ${getTemperatureColor(temperature)}`}>
                   {temperature}°C
                 </span>
+                <span className="text-sm text-gray-500">(Debug: {temperature})</span>
               </div>
               <Badge variant={temperature > 25 ? "destructive" : temperature < 15 ? "secondary" : "default"}>
                 {temperature > 25 ? "Too Hot!" : temperature < 15 ? "Too Cold!" : "Comfortable"}
@@ -193,6 +194,28 @@ const TemperatureRisingGame: React.FC<TemperatureRisingGameProps> = ({ onComplet
                 step={1}
                 className="w-full"
               />
+              {/* Fallback range input */}
+              <input
+                type="range"
+                min="0"
+                max="50"
+                value={temperature}
+                onChange={(e) => setTemperature(Number(e.target.value))}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+              />
+              {/* Debug input */}
+              <div className="flex items-center gap-2">
+                <label className="text-sm">Manual input:</label>
+                <input
+                  type="number"
+                  value={temperature}
+                  onChange={(e) => setTemperature(Number(e.target.value))}
+                  min={0}
+                  max={50}
+                  className="w-20 px-2 py-1 border rounded"
+                />
+                <span>°C</span>
+              </div>
             </div>
           </div>
 
