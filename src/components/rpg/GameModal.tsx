@@ -71,7 +71,11 @@ export default function GameModal({
   };
 
   const handleStartGame = () => {
+    console.log('Starting game:', game.id);
     setShowGame(true);
+    console.log('showGame set to true');
+    // Close the dialog to show the game
+    onClose();
   };
 
   const handleGameComplete = (score: number, bonus: number) => {
@@ -109,6 +113,8 @@ export default function GameModal({
   const renderInteractiveGame = () => {
     if (!showGame) return null;
 
+    console.log('Rendering interactive game:', game.id, 'showGame:', showGame);
+
     // Check if it's an HTML game
     if (isHtmlGame(game.id)) {
       return (
@@ -129,10 +135,12 @@ export default function GameModal({
       case 'waste-sorting-game':
         return <WasteSortingGame onComplete={handleGameComplete} onClose={handleGameClose} />;
       case 'warming-forest-game':
+        console.log('Rendering TemperatureRisingGame');
         return <TemperatureRisingGame onComplete={handleGameComplete} onClose={handleGameClose} />;
       case 'greenhouse-puzzle':
         return <GreenhouseGasPuzzle onComplete={handleGameComplete} onClose={handleGameClose} />;
       default:
+        console.log('No game found for ID:', game.id);
         return null;
     }
   };
@@ -266,7 +274,10 @@ export default function GameModal({
                       <p className="text-sm text-green-800 mb-3">
                         <strong>Interactive Game Available!</strong> This game has been fully implemented with engaging gameplay.
                       </p>
-                      <Button onClick={handleStartGame} className="bg-green-600 hover:bg-green-700">
+                      <Button onClick={() => {
+                        console.log('Play Interactive Game button clicked for:', game.id);
+                        handleStartGame();
+                      }} className="bg-green-600 hover:bg-green-700">
                         <Play className="w-4 h-4 mr-2" />
                         Play Interactive Game
                       </Button>

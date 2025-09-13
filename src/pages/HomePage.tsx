@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import AuthPage from '@/components/auth/AuthPage';
+import LandingPage from '@/components/landing/LandingPage';
 
 const HomePage: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
@@ -27,9 +28,9 @@ const HomePage: React.FC = () => {
     );
   }
 
-  // If user is not logged in, show auth page
+  // If user is not logged in, show landing page
   if (!user) {
-    return <AuthPage />;
+    return <LandingPage />;
   }
 
   // This should not render as user will be redirected to dashboard

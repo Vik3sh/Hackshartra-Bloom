@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -62,6 +61,7 @@ const TemperatureRisingGame: React.FC<TemperatureRisingGameProps> = ({ onComplet
 
   // Update animal comfort based on temperature
   useEffect(() => {
+    console.log('Temperature changed to:', temperature);
     setAnimals(prevAnimals => 
       prevAnimals.map(animal => {
         const tempDiff = Math.abs(temperature - animal.preferredTemp);
@@ -81,7 +81,9 @@ const TemperatureRisingGame: React.FC<TemperatureRisingGameProps> = ({ onComplet
 
   const handleTemperatureChange = (value: number[]) => {
     console.log('Temperature slider changed:', value);
-    setTemperature(value[0]);
+    const newTemp = value[0];
+    console.log('Setting temperature to:', newTemp);
+    setTemperature(newTemp);
   };
 
   const resetGame = () => {
@@ -107,8 +109,8 @@ const TemperatureRisingGame: React.FC<TemperatureRisingGameProps> = ({ onComplet
 
   if (gameState === 'completed' || gameState === 'gameOver') {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" style={{ zIndex: 99999 }}>
-        <Card className="w-full max-w-md mx-4">
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4" style={{ zIndex: 999999 }}>
+        <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
               <Trophy className="w-16 h-16 text-yellow-500" />
@@ -148,8 +150,8 @@ const TemperatureRisingGame: React.FC<TemperatureRisingGameProps> = ({ onComplet
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" style={{ zIndex: 99999 }}>
-      <Card className="w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4" style={{ zIndex: 999999 }}>
+      <Card className="w-full max-w-4xl max-h-[95vh] overflow-y-auto">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Temperature Rising - Forest Habitat</CardTitle>
           <div className="flex justify-between items-center mt-4">
@@ -181,74 +183,115 @@ const TemperatureRisingGame: React.FC<TemperatureRisingGameProps> = ({ onComplet
               </Badge>
             </div>
             
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm text-gray-600">
-                <span>0°C</span>
-                <span>50°C</span>
-              </div>
-              {/* Primary range input */}
-              <input
-                type="range"
-                min="0"
-                max="50"
-                value={temperature}
-                onChange={(e) => {
-                  console.log('Range input changed:', e.target.value);
-                  setTemperature(Number(e.target.value));
-                }}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                style={{
-                  background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(temperature / 50) * 100}%, #e5e7eb ${(temperature / 50) * 100}%, #e5e7eb 100%)`
-                }}
-              />
-              {/* Radix Slider as backup */}
-              <Slider
-                value={[temperature]}
-                onValueChange={handleTemperatureChange}
-                max={50}
-                min={0}
-                step={1}
-                className="w-full"
-              />
-              {/* Quick temperature buttons */}
-              <div className="flex items-center gap-2">
+            <div className="space-y-4">
+              {/* Temperature Control Buttons */}
+              <div className="grid grid-cols-5 gap-2">
                 <button
-                  onClick={() => setTemperature(0)}
-                  className="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                  onClick={() => {
+                    console.log('Button clicked: 0°C');
+                    setTemperature(0);
+                  }}
+                  className={`px-3 py-2 rounded-lg font-semibold transition-all ${
+                    temperature === 0 
+                      ? 'bg-blue-500 text-white shadow-lg' 
+                      : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                  }`}
                 >
                   0°C
                 </button>
                 <button
+                  onClick={() => setTemperature(10)}
+                  className={`px-3 py-2 rounded-lg font-semibold transition-all ${
+                    temperature === 10 
+                      ? 'bg-blue-500 text-white shadow-lg' 
+                      : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                  }`}
+                >
+                  10°C
+                </button>
+                <button
                   onClick={() => setTemperature(20)}
-                  className="px-3 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200"
+                  className={`px-3 py-2 rounded-lg font-semibold transition-all ${
+                    temperature === 20 
+                      ? 'bg-green-500 text-white shadow-lg' 
+                      : 'bg-green-100 text-green-700 hover:bg-green-200'
+                  }`}
                 >
                   20°C
                 </button>
                 <button
                   onClick={() => setTemperature(30)}
-                  className="px-3 py-1 bg-orange-100 text-orange-700 rounded hover:bg-orange-200"
+                  className={`px-3 py-2 rounded-lg font-semibold transition-all ${
+                    temperature === 30 
+                      ? 'bg-orange-500 text-white shadow-lg' 
+                      : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+                  }`}
                 >
                   30°C
                 </button>
                 <button
-                  onClick={() => setTemperature(50)}
-                  className="px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200"
+                  onClick={() => setTemperature(40)}
+                  className={`px-3 py-2 rounded-lg font-semibold transition-all ${
+                    temperature === 40 
+                      ? 'bg-red-500 text-white shadow-lg' 
+                      : 'bg-red-100 text-red-700 hover:bg-red-200'
+                  }`}
                 >
-                  50°C
+                  40°C
                 </button>
               </div>
-              {/* Debug input */}
-              <div className="flex items-center gap-2">
-                <label className="text-sm">Manual input:</label>
+              
+              {/* Additional temperature buttons */}
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  onClick={() => setTemperature(5)}
+                  className={`px-3 py-2 rounded-lg font-semibold transition-all ${
+                    temperature === 5 
+                      ? 'bg-blue-500 text-white shadow-lg' 
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  5°C
+                </button>
+                <button
+                  onClick={() => setTemperature(15)}
+                  className={`px-3 py-2 rounded-lg font-semibold transition-all ${
+                    temperature === 15 
+                      ? 'bg-green-500 text-white shadow-lg' 
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  15°C
+                </button>
+                <button
+                  onClick={() => setTemperature(25)}
+                  className={`px-3 py-2 rounded-lg font-semibold transition-all ${
+                    temperature === 25 
+                      ? 'bg-yellow-500 text-white shadow-lg' 
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  25°C
+                </button>
+              </div>
+
+              {/* Manual input */}
+              <div className="flex items-center justify-center gap-2">
+                <label className="text-sm font-medium">Custom temperature:</label>
                 <input
                   type="number"
                   value={temperature}
-                  onChange={(e) => setTemperature(Number(e.target.value))}
+                  onChange={(e) => {
+                    const newTemp = Number(e.target.value);
+                    if (newTemp >= 0 && newTemp <= 50) {
+                      setTemperature(newTemp);
+                    }
+                  }}
                   min={0}
                   max={50}
-                  className="w-20 px-2 py-1 border rounded"
+                  className="w-20 px-3 py-1 border border-gray-300 rounded-lg text-center font-semibold"
                 />
-                <span>°C</span>
+                <span className="text-sm font-medium">°C</span>
               </div>
             </div>
           </div>
@@ -324,10 +367,21 @@ const TemperatureRisingGame: React.FC<TemperatureRisingGameProps> = ({ onComplet
             <Button variant="outline" onClick={onClose}>
               Exit Game
             </Button>
-            <Button onClick={resetGame} variant="outline">
-              <RotateCcw className="w-4 h-4 mr-2" />
-              Restart
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={resetGame} variant="outline">
+                <RotateCcw className="w-4 h-4 mr-2" />
+                Restart
+              </Button>
+              <Button 
+                onClick={() => {
+                  console.log('Game submitted early!');
+                  setGameState('completed');
+                }}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                Submit Game
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
