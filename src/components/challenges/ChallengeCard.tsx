@@ -90,10 +90,12 @@ export default function ChallengeCard({ challenge, onStart, onComplete, userLeve
       
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">{getCategoryIcon(challenge.category)}</span>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-green-100 to-blue-100 rounded-lg flex items-center justify-center">
+              {getCategoryIcon(challenge.category)}
+            </div>
             <div>
-              <CardTitle className="text-lg font-semibold">{challenge.title}</CardTitle>
+              <CardTitle className="text-lg font-semibold text-gray-900">{challenge.title}</CardTitle>
               <CardDescription className="text-sm text-gray-600">
                 {challenge.description}
               </CardDescription>
@@ -201,4 +203,9 @@ export default function ChallengeCard({ challenge, onStart, onComplete, userLeve
                 Start Challenge
               </Button>
             )}
-       
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
