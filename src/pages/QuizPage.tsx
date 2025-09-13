@@ -266,7 +266,7 @@ const QuizPage: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-full bg-white shadow flex items-center justify-center overflow-hidden" />
+                <div className="w-50 h-50 flex items-center justify-center overflow-hidden "><span className="text-3xl">🌱</span></div>
                 <div style={{ width: 360 }}>
                   <div className="flex items-center justify-between mb-2">
                     <div className="font-semibold text-slate-800">Quiz Learner (1/5)</div>
@@ -302,13 +302,13 @@ const QuizPage: React.FC = () => {
           {/* Sidebar */}
           <aside className="lg:col-span-1 space-y-4">
             <div className="bg-white rounded-[10px] shadow p-4">
-              <h4 className="font-semibold text-slate-700 mb-3">Learn</h4>
+              <h4 className="font-semibold text-white-700 mb-3">Learn</h4>
               <div className="space-y-3">
                 {DIFFICULTIES.map(d => (
                   <div key={d}>
                     <button
                       onClick={() => toggleModule(d)}
-                      className={`w-full text-left px-3 py-3 rounded-[10px] flex items-center justify-between ${(openModules[d] || selectedDifficulty === d) ? 'bg-[color:var(--primary)] text-white' : 'bg-white text-slate-700'} ${isLocked(d) ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-md'}`}
+                      className={`w-full text-left px-3 py-3 rounded-[10px] flex items-center justify-between ${(openModules[d] || selectedDifficulty === d) ? 'bg-[color:var(--primary)] text-black' : 'bg-white text-slate-700'} ${isLocked(d) ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-md'}`}
                       style={{ border: `1px solid ${(openModules[d] || selectedDifficulty === d) ? COLORS.primary : '#f0f2f5'}` }}
                     >
                       <div className="flex items-center gap-3">
