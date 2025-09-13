@@ -22,3 +22,13 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Firebase and API credentials
+*-firebase-adminsdk-*.json
+firebase-adminsdk-*.json
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!tailwind.config.js
+!vite.config.ts
