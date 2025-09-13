@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
-  Search, 
-  Clock, 
-  ExternalLink, 
+import {
+  Search,
+  Clock,
+  ExternalLink,
   Filter,
   TrendingUp,
   Globe,
@@ -15,7 +15,9 @@ import {
   Zap,
   Recycle,
   TreePine,
-  RefreshCw
+  RefreshCw,
+  Hash,
+  Facebook
 } from 'lucide-react';
 import { NewsArticle, NEWS_CATEGORIES, newsService } from '@/services/newsService';
 
@@ -45,6 +47,56 @@ const getCategoryColor = (category: string) => {
     case 'sustainability': return 'bg-blue-100 text-blue-800';
     default: return 'bg-gray-100 text-gray-800';
   }
+};
+
+// Simple inline comments component persisted to localStorage. Keeps markup minimal and accessible.
+const ArticleComments: React.FC<{ articleId: string }> = ({ articleId }) => {
+  const STORAGE = 'news_comments_v1';
+  const [commentsMap, setCommentsMap] = useState<Record<string, { id: string; text: string; createdAt: string }[]>>({});
+  const [value, setValue] = useState('');
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE);
+      setCommentsMap(raw ? JSON.parse(raw) : {});
+    } catch { setCommentsMap({}); }
+  }, []);
+
+  const persist = (next: Record<string, { id: string; text: string; createdAt: string }[]>) => {
+    try { localStorage.setItem(STORAGE, JSON.stringify(next)); setCommentsMap(next); } catch {}
+  };
+
+  const addComment = () => {
+    const t = value.trim();
+    if (!t) return;
+    const c = { id: `${Date.now()}_${Math.random().toString(36).slice(2)}`, text: t, createdAt: new Date().toISOString() };
+    const next = { ...commentsMap };
+    next[articleId] = next[articleId] ? [c, ...next[articleId]] : [c];
+    persist(next);
+    setValue('');
+  };
+
+  const comments = commentsMap[articleId] || [];
+
+  return (
+    <div className="mt-3 border-t pt-3">
+      <div className="text-sm text-slate-600 mb-2">Comments ({comments.length})</div>
+      <div className="space-y-2">
+        <div>
+          <input value={value} onChange={(e) => setValue(e.target.value)} placeholder="Add a comment..." className="w-full p-2 rounded-lg border" onKeyDown={(e) => { if (e.key === 'Enter') addComment(); }} />
+          <div className="flex justify-end mt-2">
+            <Button size="sm" onClick={addComment} disabled={!value.trim()}>Post</Button>
+          </div>
+        </div>
+        {comments.map(c => (
+          <div key={c.id} className="p-2 rounded bg-gray-50">
+            <div className="text-sm text-slate-800">{c.text}</div>
+            <div className="text-xs text-slate-400 mt-1">{new Date(c.createdAt).toLocaleString()}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 };
 
 export default function NewsSection({ className }: NewsSectionProps) {
@@ -144,48 +196,55 @@ export default function NewsSection({ className }: NewsSectionProps) {
 
   return (
     <div className={`space-y-6 ${className}`}>
-      {/* Header */}
-      <div className="text-center">
-        <h2 className="text-3xl font-bold text-green-900 mb-2">📰 Punjab's Environmental News</h2>
-        <p className="text-green-600 text-lg">Stay updated with environmental developments in Punjab and beyond</p>
-        <div className="mt-2 text-sm text-green-500">
-          🌱 Curated by the EcoEdu Punjab team
+      {/* Header with subscribe CTA */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl custom-heading text-slate-900 mb-1">Punjab's Environmental News</h2>
+          <p className="custom-body text-slate-600">Stay updated with environmental developments in Punjab and beyond — curated by the EcoEdu Punjab team.</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Input placeholder="Search news..." value={searchQuery} onChange={(e) => handleSearch(e.target.value)} className="hidden md:block w-72" />
+          <Button className="custom-button bg-amber-500 text-white shadow" onClick={() => { alert('Subscribed — thank you!'); }}>Subscribe</Button>
         </div>
       </div>
 
-      {/* Trending News Section */}
+      {/* Trending / Featured Stories */}
       {trendingNews.length > 0 && (
-        <Card className="bg-gradient-to-r from-blue-50 to-green-50 border-blue-200">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-blue-900">
-              <TrendingUp className="w-5 h-5" />
-              Trending Now
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {trendingNews.map((article) => (
-                <div key={article.id} className="bg-white rounded-lg p-4 border border-blue-100 hover:shadow-md transition-shadow">
-                  <div className="flex items-center gap-2 mb-2">
-                    {getCategoryIcon(article.category)}
-                    <Badge className={getCategoryColor(article.category)}>
-                      {article.category.replace('-', ' ')}
-                    </Badge>
-                  </div>
-                  <h4 className="font-semibold text-blue-900 mb-2 line-clamp-2">{article.title}</h4>
-                  <p className="text-sm text-gray-600 mb-3 line-clamp-2">{article.description}</p>
-                  <div className="flex items-center justify-between text-xs text-gray-500">
-                    <span>{formatDate(article.publishedAt)}</span>
-                    <span className="flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      {article.readTime} min read
-                    </span>
-                  </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            {/* Large featured story */}
+            <div className="custom-card overflow-hidden">
+              <div className="relative h-80 lg:h-96">
+                <img src={trendingNews[0].urlToImage} alt={trendingNews[0].title} className="w-full h-full object-cover" onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1586339949916-3e9457bef6d3?w=1200&h=600&fit=crop'; }} />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                <div className="absolute bottom-6 left-6 text-white max-w-xl">
+                  <Badge className={`${getCategoryColor(trendingNews[0].category)} !text-xs`}>{trendingNews[0].category.replace('-', ' ')}</Badge>
+                  <h3 className="text-2xl md:text-3xl font-bold mt-2">{trendingNews[0].title}</h3>
+                  <p className="mt-2 text-sm text-white/90 line-clamp-2">{trendingNews[0].description}</p>
                 </div>
-              ))}
+                <div className="absolute top-4 right-4 flex gap-2">
+                  <Button size="sm" variant="outline" onClick={() => window.open(trendingNews[0].url, '_blank')}>Read</Button>
+                </div>
+              </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+
+          <div className="space-y-4">
+            {trendingNews.slice(1).map(a => (
+              <div key={a.id} className="flex gap-3 items-start custom-card p-3">
+                <img src={a.urlToImage} alt={a.title} className="w-32 h-20 object-cover rounded-md" onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1586339949916-3e9457bef6d3?w=800&h=400&fit=crop'; }} />
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    {getCategoryIcon(a.category)}
+                    <span className="text-xs text-muted-foreground">{a.source.name}</span>
+                  </div>
+                  <div className="font-semibold text-slate-900 line-clamp-2">{a.title}</div>
+                  <div className="text-sm text-slate-600 line-clamp-2">{a.description}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
 
       {/* Search and Filter Controls */}
@@ -216,7 +275,7 @@ export default function NewsSection({ className }: NewsSectionProps) {
                   {NEWS_CATEGORIES.map((category) => (
                     <SelectItem key={category.id} value={category.id}>
                       <div className="flex items-center gap-2">
-                        <span>{category.icon}</span>
+                        <span className="text-slate-700">{getCategoryIcon(category.id)}</span>
                         <span>{category.name}</span>
                       </div>
                     </SelectItem>
@@ -263,7 +322,7 @@ export default function NewsSection({ className }: NewsSectionProps) {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {getPaginatedArticles().map((article) => (
-                <Card key={article.id} className="bg-white border-blue-200 hover:shadow-lg transition-shadow group">
+                <Card key={article.id} className="bg-white border-blue-200 hover:shadow-lg transition-shadow group custom-card">
                   <div className="relative">
                     <img
                       src={article.urlToImage}
@@ -273,23 +332,29 @@ export default function NewsSection({ className }: NewsSectionProps) {
                         e.currentTarget.src = 'https://images.unsplash.com/photo-1586339949916-3e9457bef6d3?w=800&h=400&fit=crop';
                       }}
                     />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent rounded-t-lg" />
                     <div className="absolute top-3 left-3">
-                      <Badge className={getCategoryColor(article.category)}>
+                      <Badge className={`${getCategoryColor(article.category)} !text-xs`}>
                         {getCategoryIcon(article.category)}
-                        <span className="ml-1">{article.category.replace('-', ' ')}</span>
+                        <span className="ml-1 text-xs">{article.category.replace('-', ' ')}</span>
                       </Badge>
                     </div>
+                    <div className="absolute top-3 right-3 flex items-center gap-2">
+                      <button className="p-1 rounded bg-white/80 hover:bg-white" onClick={() => { window.open(`https://www.threads.net/share?text=${encodeURIComponent(article.title)}&url=${encodeURIComponent(article.url)}`, '_blank'); }} aria-label="Share to Threads"><Hash className="w-4 h-4 text-slate-700" /></button>
+                      <button className="p-1 rounded bg-white/80 hover:bg-white" onClick={() => { window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(article.url)}`, '_blank'); }} aria-label="Share to Facebook"><Facebook className="w-4 h-4 text-slate-700" /></button>
+                      <button className="p-1 rounded bg-white/80 hover:bg-white" onClick={() => { navigator.clipboard?.writeText(article.url); alert('Article URL copied to clipboard'); }} aria-label="Copy link">🔗</button>
+                    </div>
                   </div>
-                  
+
                   <CardHeader>
-                    <CardTitle className="text-lg font-semibold text-blue-900 line-clamp-2 group-hover:text-blue-700 transition-colors">
+                    <CardTitle className="text-lg custom-heading text-slate-900 line-clamp-2 group-hover:text-slate-700 transition-colors">
                       {article.title}
                     </CardTitle>
-                    <p className="text-sm text-gray-600 line-clamp-3">
+                    <p className="text-sm custom-body text-slate-600 line-clamp-3">
                       {article.description}
                     </p>
                   </CardHeader>
-                  
+
                   <CardContent>
                     <div className="space-y-3">
                       <div className="flex items-center justify-between text-xs text-gray-500">
@@ -299,21 +364,32 @@ export default function NewsSection({ className }: NewsSectionProps) {
                         </span>
                         <span>{formatDate(article.publishedAt)}</span>
                       </div>
-                      
+
                       <div className="flex items-center justify-between">
                         <span className="text-xs text-gray-500">
                           {article.source.name}
                         </span>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => window.open(article.url, '_blank')}
-                          className="text-xs"
-                        >
-                          <ExternalLink className="w-3 h-3 mr-1" />
-                          Read More
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => window.open(article.url, '_blank')}
+                            className="text-xs"
+                          >
+                            <ExternalLink className="w-3 h-3 mr-1" />
+                            Read
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => {
+                            // toggle comments below per article
+                            const key = `comments_${article.id}`;
+                            const raw = localStorage.getItem('news_comments_v1');
+                          }} className="text-xs">Comments</Button>
+                        </div>
                       </div>
+
+                      {/* Simple comments area */}
+                      <ArticleComments articleId={article.id} />
+
                     </div>
                   </CardContent>
                 </Card>

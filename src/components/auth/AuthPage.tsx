@@ -126,7 +126,7 @@ const AuthPage = () => {
             </div>
             <CardTitle className="text-2xl font-bold text-blue-900">Choose Your Avatar</CardTitle>
             <CardDescription className="text-blue-600">
-              Select a Pokémon avatar to represent you in the environmental education platform
+              Select a Pokémon avatar to represent you in the bloom
             </CardDescription>
           </CardHeader>
           <CardContent className="px-8 pb-8">
@@ -149,7 +149,7 @@ const AuthPage = () => {
           <div className="mx-auto mb-4 w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
             <span className="text-2xl">🌱</span>
           </div>
-          <CardTitle className="text-2xl font-bold text-blue-900">Environmental Education Platform</CardTitle>
+          <CardTitle className="text-2xl font-bold text-blue-900">Bloom</CardTitle>
           <CardDescription className="text-blue-600">
             Learn about our planet through interactive games and challenges
           </CardDescription>
