@@ -1,7 +1,7 @@
 // Authentication routes for Supabase to Firebase token exchange
 import { Router } from 'express';
 import { verifySupabaseToken, extractUserFromToken } from '../config/supabase';
-import { createCustomToken, adminDb } from '../config/firebase-admin';
+import { createCustomToken, adminAuth, adminDb } from '../config/firebase-admin';
 import { User } from '../types/user';
 
 const router = Router();

@@ -30,23 +30,21 @@ export const useAuth = () => {
   }, []);
 
   const signUp = async (email: string, password: string, userData: { fullName: string, pokemonAvatar?: string }) => {
-    const redirectUrl = `${window.location.origin}/`;
-    
     console.log('Signing up with userData:', userData);
     
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: redirectUrl,
         data: {
+          role: 'student',
           full_name: userData.fullName,
           pokemon_avatar: userData.pokemonAvatar
         }
       }
     });
     
-    console.log('Sign up result:', { error });
+    console.log('Sign up result:', { userId: data.user?.id, session: !!data.session, error });
     return { error };
   };
 
