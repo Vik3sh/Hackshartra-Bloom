@@ -470,11 +470,12 @@ const Dashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#F6F7FB] parallax-container">
       {/* Header */}
-      <header className="bg-white/95 backdrop-blur-md shadow-xl fixed top-4 left-2 right-2 z-50 rounded-2xl border border-white/20 navbar-3d navbar-shadow navbar-curved navbar-floating navbar-glass">
-        <div className="w-full px-4 py-4">
-          <div className="flex items-center justify-between">
+      <header className="bg-white/95 backdrop-blur-md shadow-xl fixed top-2 left-2 right-2 z-50 rounded-2xl border border-white/20 navbar-3d navbar-shadow navbar-curved navbar-floating navbar-glass sm:top-4">
+        <div className="w-full px-3 py-3 sm:px-4 sm:py-4">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             {/* Logo Section */}
-           <div className="flex items-center space-x-3">
+           <div className="flex items-center justify-between md:justify-start space-x-3">
+             <div className="flex items-center space-x-3">
         <img
           src={Logo}
           alt="Logo"
@@ -483,50 +484,60 @@ const Dashboard: React.FC = () => {
         <h1 className="text-xl font-semibold text-gray-800">
           Bloom
         </h1>
+             </div>
+             <Button
+               onClick={handleSignOut}
+               variant="outline"
+               size="sm"
+               className="md:hidden text-red-500 border-red-200 hover:bg-red-50 hover:border-red-300 rounded-full px-3 py-1"
+               disabled={isSigningOut}
+             >
+               <LogOut className="w-4 h-4" />
+             </Button>
     </div>
             {/* Centered Navigation */}
-            <div className="flex-1 flex justify-center">
+            <div className="flex-1 flex justify-start md:justify-center overflow-x-auto">
               <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="bg-gray-100 rounded-full p-0.5 [&>button]:rounded-none [&>button]:first:rounded-l-full [&>button]:last:rounded-r-full [&>button]:not(:first-child):not(:last-child):rounded-none">
+                <TabsList className="w-max bg-gray-100 rounded-full p-0.5 [&>button]:rounded-none [&>button]:first:rounded-l-full [&>button]:last:rounded-r-full [&>button]:not(:first-child):not(:last-child):rounded-none">
                   <TabsTrigger 
                     value="dashboard" 
-                    className="data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-sm px-6 py-2 transition-all duration-300 ease-in-out hover:bg-gray-200"
+                    className="data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-sm px-3 py-1.5 text-xs sm:px-6 sm:py-2 sm:text-sm transition-all duration-300 ease-in-out hover:bg-gray-200"
                   >
                     Dashboard
                   </TabsTrigger>
                   <TabsTrigger 
                     value="lessons" 
-                    className="data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-sm px-6 py-2 transition-all duration-300 ease-in-out hover:bg-gray-200"
+                    className="data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-sm px-3 py-1.5 text-xs sm:px-6 sm:py-2 sm:text-sm transition-all duration-300 ease-in-out hover:bg-gray-200"
                   >
                     Lessons
                   </TabsTrigger>
                   <TabsTrigger 
                     value="challenges" 
-                    className="data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-sm px-6 py-2 transition-all duration-300 ease-in-out hover:bg-gray-200"
+                    className="data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-sm px-3 py-1.5 text-xs sm:px-6 sm:py-2 sm:text-sm transition-all duration-300 ease-in-out hover:bg-gray-200"
                   >
                     Challenges
                   </TabsTrigger>
                   <TabsTrigger 
                     value="community" 
-                    className="data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-sm px-6 py-2 transition-all duration-300 ease-in-out hover:bg-gray-200"
+                    className="data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-sm px-3 py-1.5 text-xs sm:px-6 sm:py-2 sm:text-sm transition-all duration-300 ease-in-out hover:bg-gray-200"
                   >
                     Community
                   </TabsTrigger>
                   <TabsTrigger 
                     value="news" 
-                    className="data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-sm px-6 py-2 transition-all duration-300 ease-in-out hover:bg-gray-200"
+                    className="data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-sm px-3 py-1.5 text-xs sm:px-6 sm:py-2 sm:text-sm transition-all duration-300 ease-in-out hover:bg-gray-200"
                   >
                     News
                   </TabsTrigger>
                   <TabsTrigger 
                     value="quiz" 
-                    className="data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-sm px-6 py-2 transition-all duration-300 ease-in-out hover:bg-gray-200"
+                    className="data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-sm px-3 py-1.5 text-xs sm:px-6 sm:py-2 sm:text-sm transition-all duration-300 ease-in-out hover:bg-gray-200"
                   >
                     Quiz
                   </TabsTrigger>
                   <TabsTrigger 
                     value="rewards" 
-                    className="data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-sm px-6 py-2 transition-all duration-300 ease-in-out hover:bg-gray-200"
+                    className="data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-sm px-3 py-1.5 text-xs sm:px-6 sm:py-2 sm:text-sm transition-all duration-300 ease-in-out hover:bg-gray-200"
                   >
                     Rewards
                   </TabsTrigger>
@@ -535,7 +546,7 @@ const Dashboard: React.FC = () => {
             </div>
 
             {/* Right Section - User Actions */}
-            <div className="flex items-center space-x-4">
+            <div className="hidden md:flex items-center space-x-4">
               {/* Calendar Icon */}
               <div className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-gray-900 cursor-pointer">
                 <Calendar className="w-5 h-5" />
@@ -594,7 +605,7 @@ const Dashboard: React.FC = () => {
       </header>
 
       {/* Main Content */}
-      <main className="px-2 py-6 pt-24">
+      <main className="px-2 py-6 pt-48 sm:pt-52 md:pt-24">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsContent value="dashboard" className="mt-6">
             <SimpleEnhancedDashboard 
@@ -760,7 +771,7 @@ const Dashboard: React.FC = () => {
         />
         
         {/* Temporary Dev Mode Test - Remove this later */}
-        <div className="fixed bottom-4 right-4 z-40 space-y-2 max-h-96 overflow-y-auto">
+        <div className="hidden md:block fixed bottom-4 right-4 z-40 space-y-2 max-h-96 overflow-y-auto">
           <DevModeTest />
           <GameTest />
         </div>

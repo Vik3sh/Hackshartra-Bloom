@@ -75,7 +75,7 @@ const SimpleEnhancedDashboard: React.FC<SimpleEnhancedDashboardProps> = ({ userP
         {/* Top Row - Activity and Daily Quest */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Enhanced Activity Section */}
-          <Card className="rounded-2xl border-0 shadow-lg bg-gradient-to-br from-blue-50 via-white to-indigo-50 h-[350px]">
+          <Card className="rounded-2xl border-0 shadow-lg bg-gradient-to-br from-blue-50 via-white to-indigo-50 lg:h-[350px]">
             <CardContent className="p-5 h-full flex flex-col">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-4">
@@ -99,7 +99,7 @@ const SimpleEnhancedDashboard: React.FC<SimpleEnhancedDashboardProps> = ({ userP
           </Card>
 
           {/* Daily Quest Section - Same height as Activity */}
-          <Card className="rounded-2xl border-0 shadow-lg bg-gradient-to-br from-orange-50 to-amber-50 h-[350px]">
+          <Card className="rounded-2xl border-0 shadow-lg bg-gradient-to-br from-orange-50 to-amber-50 lg:h-[350px]">
             <CardContent className="p-4 h-full flex flex-col">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
@@ -197,7 +197,7 @@ const SimpleEnhancedDashboard: React.FC<SimpleEnhancedDashboardProps> = ({ userP
         {/* Bottom Row - Quick Actions and Progress Statistics */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Quick Actions Section */}
-          <Card className="rounded-2xl border-0 shadow-lg bg-gradient-to-br from-indigo-50 to-blue-50 h-[250px]">
+          <Card className="rounded-2xl border-0 shadow-lg bg-gradient-to-br from-indigo-50 to-blue-50 lg:h-[250px]">
             <CardContent className="p-5 h-full flex flex-col">
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-12 h-12 bg-gradient-to-br from-indigo-100 to-blue-200 rounded-xl flex items-center justify-center">
@@ -241,7 +241,7 @@ const SimpleEnhancedDashboard: React.FC<SimpleEnhancedDashboardProps> = ({ userP
           </Card>
 
           {/* Progress Statistics - Same height as Quick Actions */}
-          <Card className="rounded-2xl border-0 shadow-lg bg-gradient-to-br from-green-50 to-emerald-50 h-[250px]">
+          <Card className="rounded-2xl border-0 shadow-lg bg-gradient-to-br from-green-50 to-emerald-50 lg:h-[250px]">
             <CardContent className="p-4 h-full flex flex-col">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
@@ -284,7 +284,7 @@ const SimpleEnhancedDashboard: React.FC<SimpleEnhancedDashboardProps> = ({ userP
 
                 {/* Community Posts Section - Fills remaining space */}
                 <div className="mt-4">
-                  <Card className="rounded-2xl border-0 shadow-lg bg-gradient-to-br from-blue-50 to-indigo-50 h-[605px]">
+                  <Card className="rounded-2xl border-0 shadow-lg bg-gradient-to-br from-blue-50 to-indigo-50 lg:h-[605px]">
             <CardContent className="p-4 h-full flex flex-col">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -403,7 +403,7 @@ const SimpleEnhancedDashboard: React.FC<SimpleEnhancedDashboardProps> = ({ userP
       {/* Right Column - Eco Tree (40%) */}
       <div className="h-full lg:col-span-4">
         {/* Eco Tree - Takes full space */}
-        <Card className="rounded-2xl border-0 shadow-lg bg-gradient-to-br from-green-50 to-emerald-50 h-full min-h-[900px]">
+        <Card className="rounded-2xl border-0 shadow-lg bg-gradient-to-br from-green-50 to-emerald-50 h-full min-h-[500px] lg:min-h-[900px]">
           <CardContent className="p-6 h-full flex flex-col">
             <div className="flex items-center gap-4 mb-6">
               <div className="w-16 h-16 bg-gradient-to-br from-green-100 to-emerald-200 rounded-2xl flex items-center justify-center">
